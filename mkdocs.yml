@@ -1,0 +1,119 @@
+# Project information
+site_name: Astro Merge — Servicio de Comunicaciones
+site_description: Documentación técnica del microservicio de mensajería del sistema Astro Merge.
+site_author: Equipo TECH-CUP 2026 INT
+site_url: https://tech-cup-2026-int.github.io/am-comunication-service/
+
+# Repository
+repo_name: TECH-CUP-2026-INT/am-comunication-service
+repo_url: https://github.com/TECH-CUP-2026-INT/am-comunication-service
+edit_uri: edit/develop/docs/
+
+# Copyright
+copyright: Copyright &copy; 2026 TECH-CUP 2026 INT
+
+# Configuration
+theme:
+  name: material
+  language: es
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - navigation.indexes
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+  palette:
+    # Modo claro
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: Cambiar a modo oscuro
+    # Modo oscuro
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: Cambiar a modo claro
+  icon:
+    repo: fontawesome/brands/github
+  font:
+    text: Roboto
+    code: Roboto Mono
+
+# Estilos personalizados
+extra_css:
+  - assets/stylesheets/extra.css
+
+# Plugins
+plugins:
+  - search:
+      lang: es
+
+# Extensions
+markdown_extensions:
+  # Python Markdown
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      title: En esta página
+  # Python Markdown Extensions
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+# Navigation
+nav:
+  - Inicio: index.md
+  - Introducción: introduccion.md
+  - Requerimientos: requerimientos.md
+  - Configuración: configuracion.md
+  - Arquitectura: arquitectura.md
+  - API: api.md
+  - Pruebas: pruebas.md
+  - Equipo: equipo.md
+  - Anexos: anexos.md
