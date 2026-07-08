@@ -18,7 +18,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({
             ChatNotFoundException.class,
             MessageNotFoundException.class,
-            SupportTicketNotFoundException.class
+            SupportTicketNotFoundException.class,
+            ReportedMessageNotFoundException.class
     })
     public ResponseEntity<ErrorResponse> handleNotFound(DomainException ex, HttpServletRequest request) {
         return build(HttpStatus.NOT_FOUND, ex.getMessage(), request);

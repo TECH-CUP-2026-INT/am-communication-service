@@ -1,13 +1,19 @@
 package co.edu.escuelaing.techcup.communications.controller;
 
+import co.edu.escuelaing.techcup.communications.dto.ReportMessageRequest;
 import co.edu.escuelaing.techcup.communications.dto.SendMessageRequest;
 import co.edu.escuelaing.techcup.communications.entity.Chat;
 import co.edu.escuelaing.techcup.communications.entity.Message;
+import co.edu.escuelaing.techcup.communications.entity.ReportedMessage;
 import co.edu.escuelaing.techcup.communications.entity.enums.ChatType;
 import co.edu.escuelaing.techcup.communications.entity.enums.ParticipantRole;
 import co.edu.escuelaing.techcup.communications.exception.ChatClosedException;
+import co.edu.escuelaing.techcup.communications.exception.MessageAlreadyReportedException;
+import co.edu.escuelaing.techcup.communications.exception.MessageNotFoundException;
 import co.edu.escuelaing.techcup.communications.exception.ParticipantNotAllowedException;
 import co.edu.escuelaing.techcup.communications.mapper.MessageMapperImpl;
+import co.edu.escuelaing.techcup.communications.mapper.ReportMapperImpl;
+import co.edu.escuelaing.techcup.communications.service.ReportMessageUseCase;
 import co.edu.escuelaing.techcup.communications.service.SendMessageUseCase;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -29,7 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(MessageController.class)
 @AutoConfigureMockMvc(addFilters = false)
-@Import(MessageMapperImpl.class)
+@Import({MessageMapperImpl.class, ReportMapperImpl.class})
 class MessageControllerTest {
 
     @Autowired
@@ -41,7 +47,11 @@ class MessageControllerTest {
     @MockitoBean
     private SendMessageUseCase sendMessageUseCase;
 
+    @MockitoBean
+    private ReportMessageUseCase reportMessageUseCase;
+
     private final UUID sender = UUID.randomUUID();
+    private final UUID reporter = UUID.randomUUID();
 
     private Message sampleMessage() {
         Chat chat = Chat.create(ChatType.DIRECT, null);
@@ -94,5 +104,42 @@ class MessageControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isConflict());
+    }
+
+    @Test
+    void reportReturns201() throws Exception {
+        Message message = sampleMessage();
+        ReportedMessage report = ReportedMessage.create(message, reporter, "spam");
+        when(reportMessageUseCase.report(any())).thenReturn(report);
+        ReportMessageRequest request = new ReportMessageRequest(reporter, "spam");
+
+        mockMvc.perform(post("/messages/{id}/report", message.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.reporterId").value(reporter.toString()))
+                .andExpect(jsonPath("$.status").value("PENDING"));
+    }
+
+    @Test
+    void reportDuplicateReturns409() throws Exception {
+        when(reportMessageUseCase.report(any())).thenThrow(new MessageAlreadyReportedException(UUID.randomUUID()));
+        ReportMessageRequest request = new ReportMessageRequest(reporter, "spam");
+
+        mockMvc.perform(post("/messages/{id}/report", UUID.randomUUID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void reportMissingMessageReturns404() throws Exception {
+        when(reportMessageUseCase.report(any())).thenThrow(new MessageNotFoundException(UUID.randomUUID()));
+        ReportMessageRequest request = new ReportMessageRequest(reporter, "spam");
+
+        mockMvc.perform(post("/messages/{id}/report", UUID.randomUUID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound());
     }
 }
