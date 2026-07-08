@@ -1,6 +1,6 @@
-# Anexos
+# Appendices
 
-## Referencias
+## References
 
 - [Spring Boot Reference Documentation](https://docs.spring.io/spring-boot/index.html)
 - [Spring Data JPA](https://docs.spring.io/spring-data/jpa/reference/)
@@ -11,21 +11,21 @@
 - [STOMP Protocol Specification](https://stomp.github.io/)
 - [Testcontainers for Java](https://java.testcontainers.org/)
 
-## Bibliografía
+## Bibliography
 
 
-## Recursos adicionales
+## Additional resources
 
-### Herramientas de documentación
+### Documentation tools
 
-| Recurso | Descripción |
+| Resource | Description |
 |---------|-------------|
-| [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/) | Tema usado para esta documentación. |
-| [MkDocs](https://www.mkdocs.org/) | Generador de sitios de documentación. |
+| [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/) | Theme used for this documentation. |
+| [MkDocs](https://www.mkdocs.org/) | Documentation site generator. |
 
-### Servir esta documentación localmente
+### Serving this documentation locally
 
-Requiere Python 3:
+Requires Python 3:
 
 ```bash
 python -m venv .venv-docs
@@ -33,27 +33,27 @@ python -m venv .venv-docs
 .venv-docs/bin/mkdocs serve   # http://localhost:8000
 ```
 
-Generar el sitio estático:
+Build the static site:
 
 ```bash
 .venv-docs/bin/mkdocs build
 ```
 
-!!! tip "Publicación en GitHub Pages"
+!!! tip "Publishing to GitHub Pages"
     ```bash
     .venv-docs/bin/mkdocs gh-deploy
     ```
-    **Pendiente de completar:** confirmar la rama y el flujo de publicación oficiales del equipo.
+    **To be completed:** confirm the team's official publishing branch and workflow.
 
-## Glosario
+## Glossary
 
-| Término | Definición |
+| Term | Definition |
 |---------|------------|
-| **STOMP** | *Simple Text Oriented Messaging Protocol*; protocolo de mensajería pub/sub usado sobre WebSocket. |
-| **WebSocket** | Protocolo de comunicación bidireccional en tiempo real sobre una única conexión TCP. |
-| **Topic** | Destino de suscripción STOMP; aquí, uno por conversación (`/topic/conversacion/{id}`). |
-| **DTO** | *Data Transfer Object*; objeto para transportar datos entre capas. |
-| **JPA** | *Jakarta Persistence API*; estándar de mapeo objeto-relacional usado con PostgreSQL. |
-| **Escalamiento** | Transferir una conversación de soporte del chatbot a un organizador humano. |
-| **Moderación** | Revisión de mensajes reportados y registro de su resolución. |
+| **STOMP** | *Simple Text Oriented Messaging Protocol*; pub/sub messaging protocol used over WebSocket. |
+| **WebSocket** | Bidirectional real-time communication protocol over a single TCP connection. |
+| **Topic** | STOMP subscription destination; here, one per conversation (`/topic/conversacion/{id}`). |
+| **DTO** | *Data Transfer Object*; object for transporting data between layers. |
+| **JPA** | *Jakarta Persistence API*; object-relational mapping standard used with PostgreSQL. |
+| **Escalation** | Transferring a support conversation from the chatbot to a human organizer. |
+| **Moderation** | Review of reported messages and recording of their resolution. |
 | **CI/CD** | *Continuous Integration / Continuous Delivery*. |

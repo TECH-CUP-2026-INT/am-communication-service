@@ -1,3 +1,3 @@
-# Configuración
+# Configuration
 
-Espacio para configuraciones adicionales
+Space for additional configuration.

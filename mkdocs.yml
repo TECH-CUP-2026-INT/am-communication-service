@@ -1,7 +1,7 @@
 # Project information
-site_name: Astro Merge — Servicio de Comunicaciones
-site_description: Documentación técnica del microservicio de mensajería del sistema Astro Merge.
-site_author: Equipo TECH-CUP 2026 INT
+site_name: Astro Merge — Communications Service
+site_description: Technical documentation of the messaging microservice of the Astro Merge system.
+site_author: TECH-CUP 2026 INT Team
 site_url: https://tech-cup-2026-int.github.io/am-comunication-service/
 
 # Repository
@@ -15,7 +15,7 @@ copyright: Copyright &copy; 2026 TECH-CUP 2026 INT
 # Configuration
 theme:
   name: material
-  language: es
+  language: en
   features:
     - navigation.instant
     - navigation.tracking
@@ -32,36 +32,36 @@ theme:
     - content.code.annotate
     - content.tabs.link
   palette:
-    # Modo claro
+    # Light mode
     - media: "(prefers-color-scheme: light)"
       scheme: default
       primary: custom
       accent: custom
       toggle:
         icon: material/weather-night
-        name: Cambiar a modo oscuro
-    # Modo oscuro
+        name: Switch to dark mode
+    # Dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
       primary: custom
       accent: custom
       toggle:
         icon: material/weather-sunny
-        name: Cambiar a modo claro
+        name: Switch to light mode
   icon:
     repo: fontawesome/brands/github
   font:
     text: Roboto
     code: Roboto Mono
 
-# Estilos personalizados
+# Custom styles
 extra_css:
   - assets/stylesheets/extra.css
 
 # Plugins
 plugins:
   - search:
-      lang: es
+      lang: en
 
 # Extensions
 markdown_extensions:
@@ -75,7 +75,7 @@ markdown_extensions:
   - tables
   - toc:
       permalink: true
-      title: En esta página
+      title: On this page
   # Python Markdown Extensions
   - pymdownx.arithmatex:
       generic: true
@@ -108,12 +108,12 @@ markdown_extensions:
 
 # Navigation
 nav:
-  - Inicio: index.md
-  - Introducción: introduccion.md
-  - Requerimientos: requerimientos.md
-  - Configuración: configuracion.md
-  - Arquitectura: arquitectura.md
+  - Home: index.md
+  - Introduction: introduccion.md
+  - Requirements: requerimientos.md
+  - Configuration: configuracion.md
+  - Architecture: arquitectura.md
   - API: api.md
-  - Pruebas: pruebas.md
-  - Equipo: equipo.md
-  - Anexos: anexos.md
+  - Testing: pruebas.md
+  - Team: equipo.md
+  - Appendices: anexos.md

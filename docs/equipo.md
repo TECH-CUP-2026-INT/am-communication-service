@@ -1,17 +1,17 @@
-# Equipo
+# Team
 
-Integrantes responsables del desarrollo y mantenimiento del Servicio de Comunicaciones de
-Astro Merge.
+Members responsible for the development and maintenance of the Astro Merge
+Communications Service.
 
-| Nombre | Rol | Responsabilidades |
+| Name | Role | Responsibilities |
 |--------|-----|-------------------|
-| *Pendiente de completar* | Líder técnico | Arquitectura, revisión de código, decisiones técnicas. |
-| *Pendiente de completar* | Desarrollador backend | Servicios, controladores REST y persistencia (JPA/PostgreSQL). |
-| *Pendiente de completar* | Desarrollador backend | Canal WebSocket/STOMP e integración con otros microservicios. |
-| *Pendiente de completar* | QA / Tester | Diseño y ejecución de pruebas. |
-| *Pendiente de completar* | DevOps | Contenerización, CI/CD y despliegue. |
+| *To be completed* | Tech lead | Architecture, code review, technical decisions. |
+| *To be completed* | Backend developer | Services, REST controllers, and persistence (JPA/PostgreSQL). |
+| *To be completed* | Backend developer | WebSocket/STOMP channel and integration with other microservices. |
+| *To be completed* | QA / Tester | Test design and execution. |
+| *To be completed* | DevOps | Containerization, CI/CD, and deployment. |
 
-## Organización
+## Organization
 
-- **Organización GitHub:** [TECH-CUP-2026-INT](https://github.com/TECH-CUP-2026-INT)
-- **Repositorio:** [am-comunication-service](https://github.com/TECH-CUP-2026-INT/am-comunication-service)
+- **GitHub organization:** [TECH-CUP-2026-INT](https://github.com/TECH-CUP-2026-INT)
+- **Repository:** [am-comunication-service](https://github.com/TECH-CUP-2026-INT/am-comunication-service)

@@ -1,88 +1,88 @@
-# Requerimientos
+# Requirements
 
-Los requisitos funcionales provienen del backlog del proyecto (Astro Merge). Los requisitos
-no funcionales se derivan de las integraciones entre microservicios y de las decisiones de
-arquitectura ya tomadas.
+The functional requirements come from the project backlog (Astro Merge). The non-functional
+requirements are derived from the integrations between microservices and from the
+architecture decisions already made.
 
-    Los requisitos funcionales listados provienen del **backlog de Jira** compartido por el
-    equipo. **No se encontró** ningún archivo de backlog, *issues* ni historias de usuario
-    dentro del repositorio (`git log` con un único commit y sin ficheros de backlog).
-    **Pendiente de completar:** enlazar el tablero de Jira o exportar las historias de usuario
-    al repositorio para poder ampliarlas y trazarlas aquí.
+    The functional requirements listed come from the **Jira backlog** shared by the
+    team. **No** backlog file, *issues*, or user stories were found
+    within the repository (`git log` with a single commit and no backlog files).
+    **To be completed:** link the Jira board or export the user stories
+    to the repository so they can be expanded and traced here.
 
-## Requisitos funcionales
+## Functional requirements
 
-| ID | Requisito | Descripción | Estado |
-|----|-----------|-------------|--------|
-| RF-01 | Chat de ayuda y soporte con chatbot | Un usuario puede iniciar una conversación de soporte atendida por un chatbot. | Previsto |
-| RF-02 | Escalamiento al organizador | Una conversación de soporte puede escalarse a un organizador humano cuando el chatbot no resuelve. | Previsto |
-| RF-03 | Mensajería directa entre jugadores | Dos jugadores pueden intercambiar mensajes directos en tiempo real. | Previsto |
-| RF-04 | Moderación de mensajes reportados | Un mensaje puede ser reportado y revisado por un moderador, que registra una resolución. | Previsto |
-| RF-05 | Chat grupal por equipo | Chat grupal asociado a un equipo (`equipo_id`); requiere validar membresía. | Derivado del modelo/integraciones |
+| ID | Requirement | Description | Status |
+|----|-------------|-------------|--------|
+| RF-01 | Chatbot-assisted help and support chat | A user can start a support conversation handled by a chatbot. | Planned |
+| RF-02 | Escalation to the organizer | A support conversation can be escalated to a human organizer when the chatbot does not resolve it. | Planned |
+| RF-03 | Direct messaging between players | Two players can exchange direct messages in real time. | Planned |
+| RF-04 | Moderation of reported messages | A message can be reported and reviewed by a moderator, who records a resolution. | Planned |
+| RF-05 | Team group chat | Group chat associated with a team (`equipo_id`); requires validating membership. | Derived from the model/integrations |
 
-!!! info "RF-05 — inferido"
-    El tipo de conversación **grupal** con `equipo_id` (modelo de datos) y la integración con
-    el **Servicio de Equipos** ("validar membresía antes de permitir chat grupal") implican un
-    caso de uso de chat grupal por equipo, aunque no aparezca explícito en la lista del backlog
-    compartida. **Pendiente de completar:** confirmar esta historia con el equipo de producto.
+!!! info "RF-05 — inferred"
+    The **group** conversation type with `equipo_id` (data model) and the integration with
+    the **Teams Service** ("validate membership before allowing group chat") imply a
+    team group chat use case, even though it does not appear explicitly in the shared
+    backlog list. **To be completed:** confirm this story with the product team.
 
-## Requisitos no funcionales
+## Non-functional requirements
 
-| ID | Categoría | Requisito |
-|----|-----------|-----------|
-| RNF-01 | Rendimiento | La mensajería en tiempo real debe tener baja latencia mediante WebSocket (STOMP), evitando *polling*. |
-| RNF-02 | Integridad | La persistencia debe garantizar integridad referencial entre conversaciones, mensajes y reportes (PostgreSQL relacional). |
-| RNF-03 | Escalabilidad | El estado de conexión se mantiene en memoria; la lógica de negocio debe poder escalarse horizontalmente. |
-| RNF-04 | Integración — Identidad | Validar que el usuario esté autenticado (Servicio de Identidad) antes de participar en un chat. |
-| RNF-05 | Integración — Equipos | Validar la membresía del equipo (Servicio de Equipos) antes de permitir el chat grupal. |
-| RNF-06 | Integración — Notificaciones | Disparar una notificación (Servicio de Notificaciones) cuando llega un mensaje nuevo. |
-| RNF-07 | Integración — Auditoría | Reportar al Servicio de Auditoría la creación de chats y los reportes de moderación. |
-| RNF-08 | Portabilidad | El servicio debe poder ejecutarse en contenedores Docker. |
-| RNF-09 | Observabilidad | *Pendiente de completar: definir métricas, logs y trazabilidad requeridos.* |
-| RNF-10 | Seguridad | *Pendiente de completar: definir TLS, CORS y política de autorización del canal WebSocket.* |
+| ID | Category | Requirement |
+|----|----------|-------------|
+| RNF-01 | Performance | Real-time messaging must have low latency via WebSocket (STOMP), avoiding *polling*. |
+| RNF-02 | Integrity | Persistence must guarantee referential integrity between conversations, messages, and reports (relational PostgreSQL). |
+| RNF-03 | Scalability | Connection state is kept in memory; the business logic must be able to scale horizontally. |
+| RNF-04 | Integration — Identity | Validate that the user is authenticated (Identity Service) before participating in a chat. |
+| RNF-05 | Integration — Teams | Validate team membership (Teams Service) before allowing group chat. |
+| RNF-06 | Integration — Notifications | Trigger a notification (Notifications Service) when a new message arrives. |
+| RNF-07 | Integration — Auditing | Report chat creation and moderation reports to the Auditing Service. |
+| RNF-08 | Portability | The service must be able to run in Docker containers. |
+| RNF-09 | Observability | *To be completed: define required metrics, logs, and traceability.* |
+| RNF-10 | Security | *To be completed: define TLS, CORS, and the WebSocket channel's authorization policy.* |
 
-## Casos de uso principales
+## Main use cases
 
-!!! note "Diagrama de casos de uso"
-    Añade aquí el diagrama UML de casos de uso en `docs/assets/diagrams/casos-de-uso.png`.
-    <!-- ![Diagrama de casos de uso](assets/diagrams/casos-de-uso.png) -->
+!!! note "Use case diagram"
+    Add the UML use case diagram here at `docs/assets/diagrams/casos-de-uso.png`.
+    <!-- ![Use case diagram](assets/diagrams/casos-de-uso.png) -->
 
-### CU-01 — Chat de soporte con escalamiento
+### CU-01 — Support chat with escalation
 
-| Campo | Descripción |
+| Field | Description |
 |-------|-------------|
-| **Actor** | Usuario (jugador) · Chatbot · Organizador |
-| **Precondición** | El usuario está autenticado (validado con el Servicio de Identidad). |
-| **Flujo principal** | 1. El usuario abre una conversación de soporte. 2. El chatbot responde. 3. Si no resuelve, la conversación se **escala** al organizador. 4. El organizador continúa la conversación en tiempo real. |
-| **Postcondición** | La conversación y sus mensajes quedan persistidos; se notifica a los participantes. |
-| **Excepciones** | Usuario no autenticado → rechazo; ningún organizador disponible → *pendiente de definir política*. |
+| **Actor** | User (player) · Chatbot · Organizer |
+| **Precondition** | The user is authenticated (validated with the Identity Service). |
+| **Main flow** | 1. The user opens a support conversation. 2. The chatbot responds. 3. If it does not resolve, the conversation is **escalated** to the organizer. 4. The organizer continues the conversation in real time. |
+| **Postcondition** | The conversation and its messages are persisted; participants are notified. |
+| **Exceptions** | Unauthenticated user → rejection; no organizer available → *policy to be defined*. |
 
-### CU-02 — Mensajería directa entre jugadores
+### CU-02 — Direct messaging between players
 
-| Campo | Descripción |
+| Field | Description |
 |-------|-------------|
-| **Actor** | Jugador emisor · Jugador receptor |
-| **Precondición** | Ambos usuarios autenticados. |
-| **Flujo principal** | 1. El emisor envía un mensaje. 2. Se valida y persiste. 3. Se entrega en tiempo real al receptor suscrito al *topic*. 4. Se dispara notificación. |
-| **Postcondición** | Mensaje almacenado y entregado. |
+| **Actor** | Sending player · Receiving player |
+| **Precondition** | Both users authenticated. |
+| **Main flow** | 1. The sender sends a message. 2. It is validated and persisted. 3. It is delivered in real time to the receiver subscribed to the *topic*. 4. A notification is triggered. |
+| **Postcondition** | Message stored and delivered. |
 
-### CU-03 — Moderación de un mensaje reportado
+### CU-03 — Moderation of a reported message
 
-| Campo | Descripción |
+| Field | Description |
 |-------|-------------|
-| **Actor** | Usuario que reporta · Moderador |
-| **Precondición** | Existe el mensaje a reportar. |
-| **Flujo principal** | 1. Un usuario reporta un mensaje indicando el motivo. 2. Se crea un **Reporte**. 3. Un moderador lo revisa y registra la resolución. 4. Se reporta el evento al Servicio de Auditoría. |
-| **Postcondición** | El reporte queda registrado con su resolución. |
+| **Actor** | Reporting user · Moderator |
+| **Precondition** | The message to be reported exists. |
+| **Main flow** | 1. A user reports a message stating the reason. 2. A **Report** is created. 3. A moderator reviews it and records the resolution. 4. The event is reported to the Auditing Service. |
+| **Postcondition** | The report is recorded with its resolution. |
 
-### CU-04 — Chat grupal de equipo *(inferido)*
+### CU-04 — Team group chat *(inferred)*
 
-| Campo | Descripción |
+| Field | Description |
 |-------|-------------|
-| **Actor** | Jugadores miembros de un equipo |
-| **Precondición** | El usuario es miembro del equipo (validado con el Servicio de Equipos). |
-| **Flujo principal** | 1. Se valida la membresía. 2. El jugador se suscribe al *topic* del chat grupal. 3. Intercambio de mensajes en tiempo real. |
-| **Postcondición** | Mensajes persistidos y entregados a los miembros conectados. |
+| **Actor** | Players who are members of a team |
+| **Precondition** | The user is a member of the team (validated with the Teams Service). |
+| **Main flow** | 1. Membership is validated. 2. The player subscribes to the group chat *topic*. 3. Real-time message exchange. |
+| **Postcondition** | Messages persisted and delivered to connected members. |
 
-    Documentar los criterios de aceptación de cada caso de uso a partir de las historias de
-    Jira.
+    Document the acceptance criteria of each use case based on the Jira
+    stories.

@@ -1,15 +1,14 @@
-# Pruebas
+# Testing
 
-El proyecto incluye `spring-boot-starter-test`, que agrupa **JUnit 5**, **Mockito**,
-**AssertJ** y **Spring Test**.
+The project includes `spring-boot-starter-test`, which bundles **JUnit 5**, **Mockito**,
+**AssertJ**, and **Spring Test**.
 
-## Herramientas utilizadas
+## Tools used
 
-| Herramienta | Uso |
-|-------------|-----|
-| JUnit 5 | Framework de pruebas. |
-| Mockito | Mocks y stubs. |
-| AssertJ | Aserciones fluidas. |
-| Spring Boot Test | Pruebas de contexto e integración. |
-| Testcontainers *(propuesto)* | PostgreSQL efímero para integración. |
-| JaCoCo *(propuesto)* | Medición de cobertura. |
+| Tool | Use |
+|------------|-----|
+| JUnit 5 | Testing framework. |
+| Mockito | Mocks and stubs. |
+| AssertJ | Fluent assertions. |
+| Spring Boot Test | Context and integration tests. |
+| JaCoCo * | Coverage measurement. |
