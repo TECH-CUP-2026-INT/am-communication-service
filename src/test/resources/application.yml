@@ -1,0 +1,27 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:communications;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
+    username: sa
+    password: ""
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+    open-in-view: false
+
+security:
+  jwt:
+    secret: test-secret-key-for-hs256-signing-must-be-long-enough-256-bits
+
+integrations:
+  user-service:
+    base-url: http://localhost:0
+  team-service:
+    base-url: http://localhost:0
+  notification-service:
+    base-url: http://localhost:0
+  audit-service:
+    base-url: http://localhost:0
