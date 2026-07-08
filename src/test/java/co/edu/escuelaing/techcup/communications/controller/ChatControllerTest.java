@@ -5,11 +5,16 @@ import co.edu.escuelaing.techcup.communications.dto.ParticipantRequest;
 import co.edu.escuelaing.techcup.communications.entity.Chat;
 import co.edu.escuelaing.techcup.communications.entity.enums.ChatType;
 import co.edu.escuelaing.techcup.communications.entity.enums.ParticipantRole;
+import co.edu.escuelaing.techcup.communications.entity.Message;
 import co.edu.escuelaing.techcup.communications.exception.ChatNotFoundException;
 import co.edu.escuelaing.techcup.communications.mapper.ChatMapperImpl;
+import co.edu.escuelaing.techcup.communications.mapper.MessageMapperImpl;
 import co.edu.escuelaing.techcup.communications.service.CreateChatUseCase;
+import co.edu.escuelaing.techcup.communications.service.GetChatMessagesUseCase;
 import co.edu.escuelaing.techcup.communications.service.GetChatUseCase;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -32,7 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(ChatController.class)
 @AutoConfigureMockMvc(addFilters = false)
-@Import(ChatMapperImpl.class)
+@Import({ChatMapperImpl.class, MessageMapperImpl.class})
 class ChatControllerTest {
 
     @Autowired
@@ -46,6 +51,9 @@ class ChatControllerTest {
 
     @MockitoBean
     private GetChatUseCase getChatUseCase;
+
+    @MockitoBean
+    private GetChatMessagesUseCase getChatMessagesUseCase;
 
     private final UUID userA = UUID.randomUUID();
 
@@ -101,5 +109,19 @@ class ChatControllerTest {
         mockMvc.perform(get("/chats/{id}", id))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404));
+    }
+
+    @Test
+    void getMessagesReturnsPagedResponse() throws Exception {
+        Chat chat = sampleChat();
+        Message message = chat.postMessage(userA, "hello");
+        when(getChatMessagesUseCase.getByChat(org.mockito.ArgumentMatchers.eq(chat.getId()), any()))
+                .thenReturn(new PageImpl<>(List.of(message), PageRequest.of(0, 20), 1));
+
+        mockMvc.perform(get("/chats/{id}/messages", chat.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.content[0].content").value("hello"))
+                .andExpect(jsonPath("$.content[0].senderId").value(userA.toString()));
     }
 }
