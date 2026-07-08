@@ -9,6 +9,8 @@ import co.edu.escuelaing.techcup.communications.entity.Message;
 import co.edu.escuelaing.techcup.communications.exception.ChatNotFoundException;
 import co.edu.escuelaing.techcup.communications.mapper.ChatMapperImpl;
 import co.edu.escuelaing.techcup.communications.mapper.MessageMapperImpl;
+import co.edu.escuelaing.techcup.communications.exception.InvalidChatOperationException;
+import co.edu.escuelaing.techcup.communications.service.CloseChatUseCase;
 import co.edu.escuelaing.techcup.communications.service.CreateChatUseCase;
 import co.edu.escuelaing.techcup.communications.service.GetChatMessagesUseCase;
 import co.edu.escuelaing.techcup.communications.service.GetChatUseCase;
@@ -54,6 +56,9 @@ class ChatControllerTest {
 
     @MockitoBean
     private GetChatMessagesUseCase getChatMessagesUseCase;
+
+    @MockitoBean
+    private CloseChatUseCase closeChatUseCase;
 
     private final UUID userA = UUID.randomUUID();
 
@@ -123,5 +128,25 @@ class ChatControllerTest {
                 .andExpect(jsonPath("$.totalElements").value(1))
                 .andExpect(jsonPath("$.content[0].content").value("hello"))
                 .andExpect(jsonPath("$.content[0].senderId").value(userA.toString()));
+    }
+
+    @Test
+    void closeReturnsClosedChat() throws Exception {
+        Chat chat = sampleChat();
+        chat.close();
+        when(closeChatUseCase.close(chat.getId())).thenReturn(chat);
+
+        mockMvc.perform(post("/chats/{id}/close", chat.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("CLOSED"));
+    }
+
+    @Test
+    void closeAlreadyClosedReturns409() throws Exception {
+        UUID id = UUID.randomUUID();
+        when(closeChatUseCase.close(id)).thenThrow(new InvalidChatOperationException("already closed"));
+
+        mockMvc.perform(post("/chats/{id}/close", id))
+                .andExpect(status().isConflict());
     }
 }

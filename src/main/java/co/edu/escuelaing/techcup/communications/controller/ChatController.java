@@ -7,6 +7,7 @@ import co.edu.escuelaing.techcup.communications.dto.PageResponse;
 import co.edu.escuelaing.techcup.communications.entity.Chat;
 import co.edu.escuelaing.techcup.communications.mapper.ChatMapper;
 import co.edu.escuelaing.techcup.communications.mapper.MessageMapper;
+import co.edu.escuelaing.techcup.communications.service.CloseChatUseCase;
 import co.edu.escuelaing.techcup.communications.service.CreateChatUseCase;
 import co.edu.escuelaing.techcup.communications.service.GetChatMessagesUseCase;
 import co.edu.escuelaing.techcup.communications.service.GetChatUseCase;
@@ -35,6 +36,7 @@ public class ChatController {
     private final CreateChatUseCase createChatUseCase;
     private final GetChatUseCase getChatUseCase;
     private final GetChatMessagesUseCase getChatMessagesUseCase;
+    private final CloseChatUseCase closeChatUseCase;
     private final ChatMapper chatMapper;
     private final MessageMapper messageMapper;
 
@@ -60,5 +62,10 @@ public class ChatController {
         PageResponse<MessageResponse> body = PageResponse.of(
                 getChatMessagesUseCase.getByChat(id, pageable).map(messageMapper::toResponse));
         return ResponseEntity.ok(body);
+    }
+
+    @PostMapping("/{id}/close")
+    public ResponseEntity<ChatResponse> close(@PathVariable UUID id) {
+        return ResponseEntity.ok(chatMapper.toResponse(closeChatUseCase.close(id)));
     }
 }
