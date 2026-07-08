@@ -1,0 +1,14 @@
+package co.edu.escuelaing.techcup.communications.repository;
+
+import co.edu.escuelaing.techcup.communications.entity.Chat;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.UUID;
+
+@Repository
+public interface ChatRepository extends JpaRepository<Chat, UUID> {
+
+    List<Chat> findDistinctByParticipants_UserId(UUID userId);
+}
