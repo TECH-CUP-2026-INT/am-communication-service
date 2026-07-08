@@ -4,7 +4,6 @@ Los requisitos funcionales provienen del backlog del proyecto (Astro Merge). Los
 no funcionales se derivan de las integraciones entre microservicios y de las decisiones de
 arquitectura ya tomadas.
 
-!!! note "Origen y verificación"
     Los requisitos funcionales listados provienen del **backlog de Jira** compartido por el
     equipo. **No se encontró** ningún archivo de backlog, *issues* ni historias de usuario
     dentro del repositorio (`git log` con un único commit y sin ficheros de backlog).
@@ -85,6 +84,5 @@ arquitectura ya tomadas.
 | **Flujo principal** | 1. Se valida la membresía. 2. El jugador se suscribe al *topic* del chat grupal. 3. Intercambio de mensajes en tiempo real. |
 | **Postcondición** | Mensajes persistidos y entregados a los miembros conectados. |
 
-!!! info "Pendiente de completar"
     Documentar los criterios de aceptación de cada caso de uso a partir de las historias de
     Jira.
