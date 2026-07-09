@@ -1,7 +1,6 @@
 package co.edu.escuelaing.techcup.communications.config;
 
 import co.edu.escuelaing.techcup.communications.entity.enums.ParticipantRole;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -18,7 +17,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  */
 @Configuration
 @EnableWebSecurity
-@EnableConfigurationProperties(JwtProperties.class)
 public class SecurityConfig {
 
     @Bean

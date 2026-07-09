@@ -3,7 +3,11 @@ package co.edu.escuelaing.techcup.communications.service.impl;
 import co.edu.escuelaing.techcup.communications.entity.Chat;
 import co.edu.escuelaing.techcup.communications.entity.enums.ChatType;
 import co.edu.escuelaing.techcup.communications.entity.enums.ParticipantRole;
+import co.edu.escuelaing.techcup.communications.exception.TeamNotFoundException;
+import co.edu.escuelaing.techcup.communications.exception.UserNotFoundException;
 import co.edu.escuelaing.techcup.communications.repository.ChatRepository;
+import co.edu.escuelaing.techcup.communications.service.client.TeamServiceClient;
+import co.edu.escuelaing.techcup.communications.service.client.UserServiceClient;
 import co.edu.escuelaing.techcup.communications.service.command.CreateChatCommand;
 import co.edu.escuelaing.techcup.communications.service.command.ParticipantCommand;
 import org.junit.jupiter.api.Test;
@@ -17,7 +21,11 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -26,14 +34,25 @@ class CreateChatServiceTest {
     @Mock
     private ChatRepository chatRepository;
 
+    @Mock
+    private UserServiceClient userServiceClient;
+
+    @Mock
+    private TeamServiceClient teamServiceClient;
+
     @InjectMocks
     private CreateChatService service;
 
     private final UUID userA = UUID.randomUUID();
     private final UUID userB = UUID.randomUUID();
 
+    private void allUsersExist() {
+        lenient().when(userServiceClient.exists(any())).thenReturn(true);
+    }
+
     @Test
     void createsChatWithParticipantsAndPersists() {
+        allUsersExist();
         CreateChatCommand command = new CreateChatCommand(ChatType.DIRECT, null, List.of(
                 new ParticipantCommand(userA, ParticipantRole.MEMBER),
                 new ParticipantCommand(userB, ParticipantRole.MEMBER)));
@@ -42,7 +61,7 @@ class CreateChatServiceTest {
         Chat result = service.create(command);
 
         ArgumentCaptor<Chat> captor = ArgumentCaptor.forClass(Chat.class);
-        org.mockito.Mockito.verify(chatRepository).save(captor.capture());
+        verify(chatRepository).save(captor.capture());
         Chat saved = captor.getValue();
         assertThat(saved.getType()).isEqualTo(ChatType.DIRECT);
         assertThat(saved.isParticipant(userA)).isTrue();
@@ -52,7 +71,9 @@ class CreateChatServiceTest {
 
     @Test
     void createsGroupChatWithTeam() {
+        allUsersExist();
         UUID team = UUID.randomUUID();
+        when(teamServiceClient.exists(team)).thenReturn(true);
         CreateChatCommand command = new CreateChatCommand(ChatType.GROUP, team, List.of(
                 new ParticipantCommand(userA, ParticipantRole.MEMBER)));
         when(chatRepository.save(any(Chat.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -61,5 +82,38 @@ class CreateChatServiceTest {
 
         assertThat(result.getType()).isEqualTo(ChatType.GROUP);
         assertThat(result.getTeamId()).isEqualTo(team);
+    }
+
+    @Test
+    void rejectsAParticipantUnknownToTheUserService() {
+        when(userServiceClient.exists(userA)).thenReturn(false);
+        CreateChatCommand command = new CreateChatCommand(ChatType.DIRECT, null, List.of(
+                new ParticipantCommand(userA, ParticipantRole.MEMBER)));
+
+        assertThatThrownBy(() -> service.create(command)).isInstanceOf(UserNotFoundException.class);
+        verify(chatRepository, never()).save(any());
+    }
+
+    @Test
+    void rejectsAGroupChatWhoseTeamIsUnknownToTheTeamService() {
+        allUsersExist();
+        UUID team = UUID.randomUUID();
+        when(teamServiceClient.exists(team)).thenReturn(false);
+        CreateChatCommand command = new CreateChatCommand(ChatType.GROUP, team, List.of(
+                new ParticipantCommand(userA, ParticipantRole.MEMBER)));
+
+        assertThatThrownBy(() -> service.create(command)).isInstanceOf(TeamNotFoundException.class);
+        verify(chatRepository, never()).save(any());
+    }
+
+    @Test
+    void doesNotCallTheTeamServiceForChatsWithoutATeam() {
+        allUsersExist();
+        when(chatRepository.save(any(Chat.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        service.create(new CreateChatCommand(ChatType.DIRECT, null, List.of(
+                new ParticipantCommand(userA, ParticipantRole.MEMBER))));
+
+        verify(teamServiceClient, never()).exists(any());
     }
 }

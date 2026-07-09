@@ -7,6 +7,7 @@ import co.edu.escuelaing.techcup.communications.entity.enums.ChatType;
 import co.edu.escuelaing.techcup.communications.entity.enums.SupportLevel;
 import co.edu.escuelaing.techcup.communications.entity.enums.SupportOutcome;
 import co.edu.escuelaing.techcup.communications.service.client.AuditServiceClient;
+import co.edu.escuelaing.techcup.communications.service.client.NotificationServiceClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -23,13 +24,15 @@ class SupportChainTest {
 
     private SupportHandler head;
     private AuditServiceClient audit;
+    private NotificationServiceClient notifications;
     private SupportChainOrchestrator orchestrator;
 
     @BeforeEach
     void setUp() {
         head = new SupportChainConfig().supportChainHead();
         audit = Mockito.mock(AuditServiceClient.class);
-        orchestrator = new SupportChainOrchestrator(head, audit);
+        notifications = Mockito.mock(NotificationServiceClient.class);
+        orchestrator = new SupportChainOrchestrator(head, audit, notifications);
     }
 
     private SupportTicket newTicket() {
@@ -58,6 +61,7 @@ class SupportChainTest {
         assertThat(result.to()).isEqualTo(SupportLevel.AUTOMATIC);
         assertThat(ticket.getCurrentLevel()).isEqualTo(SupportLevel.AUTOMATIC);
         verify(audit).record(eq("SUPPORT_TRANSITION"), eq(ticket.getId()), any());
+        verify(notifications).notify(eq(ticket.getRequesterId()), any(), any());
     }
 
     @Test

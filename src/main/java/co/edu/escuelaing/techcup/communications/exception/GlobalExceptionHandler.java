@@ -19,10 +19,18 @@ public class GlobalExceptionHandler {
             ChatNotFoundException.class,
             MessageNotFoundException.class,
             SupportTicketNotFoundException.class,
-            ReportedMessageNotFoundException.class
+            ReportedMessageNotFoundException.class,
+            UserNotFoundException.class,
+            TeamNotFoundException.class
     })
     public ResponseEntity<ErrorResponse> handleNotFound(DomainException ex, HttpServletRequest request) {
         return build(HttpStatus.NOT_FOUND, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(IntegrationException.class)
+    public ResponseEntity<ErrorResponse> handleIntegration(IntegrationException ex, HttpServletRequest request) {
+        log.error("Downstream microservice call failed", ex);
+        return build(HttpStatus.BAD_GATEWAY, ex.getMessage(), request);
     }
 
     @ExceptionHandler(ParticipantNotAllowedException.class)
