@@ -9,6 +9,7 @@ import co.edu.escuelaing.techcup.communications.exception.SupportTicketNotFoundE
 import co.edu.escuelaing.techcup.communications.repository.ChatRepository;
 import co.edu.escuelaing.techcup.communications.repository.MessageRepository;
 import co.edu.escuelaing.techcup.communications.repository.SupportTicketRepository;
+import co.edu.escuelaing.techcup.communications.service.client.MessagePublisher;
 import co.edu.escuelaing.techcup.communications.service.command.ReplySupportTicketCommand;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,6 +39,9 @@ class ReplySupportTicketServiceTest {
     @Mock
     private MessageRepository messageRepository;
 
+    @Mock
+    private MessagePublisher messagePublisher;
+
     @InjectMocks
     private ReplySupportTicketService service;
 
@@ -59,6 +63,7 @@ class ReplySupportTicketServiceTest {
 
         assertThat(message.getContent()).isEqualTo("any update?");
         verify(chatRepository, never()).save(any());
+        verify(messagePublisher).publishSupportMessage(ticket.getId(), message);
     }
 
     @Test

@@ -6,6 +6,7 @@ import co.edu.escuelaing.techcup.communications.exception.ChatNotFoundException;
 import co.edu.escuelaing.techcup.communications.repository.ChatRepository;
 import co.edu.escuelaing.techcup.communications.repository.MessageRepository;
 import co.edu.escuelaing.techcup.communications.service.SendMessageUseCase;
+import co.edu.escuelaing.techcup.communications.service.client.MessagePublisher;
 import co.edu.escuelaing.techcup.communications.service.command.SendMessageCommand;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ public class SendMessageService implements SendMessageUseCase {
 
     private final ChatRepository chatRepository;
     private final MessageRepository messageRepository;
+    private final MessagePublisher messagePublisher;
 
     @Override
     @Transactional
@@ -25,7 +27,9 @@ public class SendMessageService implements SendMessageUseCase {
                 .orElseThrow(() -> new ChatNotFoundException(command.chatId()));
         // The domain enforces that the chat is open and the sender participates.
         Message message = chat.postMessage(command.senderId(), command.content());
-        // Persist first; real-time publishing and notifications are added by later adapters.
-        return messageRepository.save(message);
+        // Persist first, then publish over WebSocket (never publish an unpersisted message).
+        Message saved = messageRepository.save(message);
+        messagePublisher.publishChatMessage(saved);
+        return saved;
     }
 }

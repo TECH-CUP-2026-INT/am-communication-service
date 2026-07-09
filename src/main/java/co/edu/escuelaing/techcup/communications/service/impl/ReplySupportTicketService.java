@@ -9,6 +9,7 @@ import co.edu.escuelaing.techcup.communications.repository.ChatRepository;
 import co.edu.escuelaing.techcup.communications.repository.MessageRepository;
 import co.edu.escuelaing.techcup.communications.repository.SupportTicketRepository;
 import co.edu.escuelaing.techcup.communications.service.ReplySupportTicketUseCase;
+import co.edu.escuelaing.techcup.communications.service.client.MessagePublisher;
 import co.edu.escuelaing.techcup.communications.service.command.ReplySupportTicketCommand;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,7 @@ public class ReplySupportTicketService implements ReplySupportTicketUseCase {
     private final SupportTicketRepository supportTicketRepository;
     private final ChatRepository chatRepository;
     private final MessageRepository messageRepository;
+    private final MessagePublisher messagePublisher;
 
     @Override
     @Transactional
@@ -34,6 +36,9 @@ public class ReplySupportTicketService implements ReplySupportTicketUseCase {
             chat.addParticipant(command.senderId(), ParticipantRole.MEMBER);
             chatRepository.save(chat);
         }
-        return messageRepository.save(chat.postMessage(command.senderId(), command.content()));
+        // Persist first, then publish to the ticket's real-time topic.
+        Message saved = messageRepository.save(chat.postMessage(command.senderId(), command.content()));
+        messagePublisher.publishSupportMessage(ticket.getId(), saved);
+        return saved;
     }
 }

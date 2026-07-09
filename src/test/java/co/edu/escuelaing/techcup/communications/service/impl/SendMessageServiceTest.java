@@ -9,6 +9,7 @@ import co.edu.escuelaing.techcup.communications.exception.ChatNotFoundException;
 import co.edu.escuelaing.techcup.communications.exception.ParticipantNotAllowedException;
 import co.edu.escuelaing.techcup.communications.repository.ChatRepository;
 import co.edu.escuelaing.techcup.communications.repository.MessageRepository;
+import co.edu.escuelaing.techcup.communications.service.client.MessagePublisher;
 import co.edu.escuelaing.techcup.communications.service.command.SendMessageCommand;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,6 +36,9 @@ class SendMessageServiceTest {
     @Mock
     private MessageRepository messageRepository;
 
+    @Mock
+    private MessagePublisher messagePublisher;
+
     @InjectMocks
     private SendMessageService service;
 
@@ -57,6 +61,7 @@ class SendMessageServiceTest {
         assertThat(message.getContent()).isEqualTo("hello");
         assertThat(message.getSenderId()).isEqualTo(sender);
         verify(messageRepository).save(message);
+        verify(messagePublisher).publishChatMessage(message);
     }
 
     @Test
