@@ -1,0 +1,36 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${DB_NAME:-communications}
+      POSTGRES_USER: ${DB_USERNAME:-communications}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-communications}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-communications} -d ${DB_NAME:-communications}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-communications}
+      DB_USERNAME: ${DB_USERNAME:-communications}
+      DB_PASSWORD: ${DB_PASSWORD:-communications}
+      JPA_DDL_AUTO: ${JPA_DDL_AUTO:-update}
+      # The signing secret is shared with the authentication service and never defaulted.
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set}
+      USER_SERVICE_URL: ${USER_SERVICE_URL:-http://user-service:8081}
+      TEAM_SERVICE_URL: ${TEAM_SERVICE_URL:-http://team-service:8082}
+      NOTIFICATION_SERVICE_URL: ${NOTIFICATION_SERVICE_URL:-http://notification-service:8083}
+      AUDIT_SERVICE_URL: ${AUDIT_SERVICE_URL:-http://audit-service:8084}
+    ports:
+      - "${SERVER_PORT:-8080}:8080"
+
+volumes:
+  postgres-data:
