@@ -19,6 +19,6 @@ public class GetUserChatsService implements GetUserChatsUseCase {
     @Override
     @Transactional(readOnly = true)
     public List<Chat> getByUser(UUID userId) {
-        return chatRepository.findDistinctByParticipants_UserId(userId);
+        return chatRepository.findAllByParticipantUserId(userId);
     }
 }
