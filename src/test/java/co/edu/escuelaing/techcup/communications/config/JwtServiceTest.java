@@ -2,6 +2,9 @@ package co.edu.escuelaing.techcup.communications.config;
 
 import co.edu.escuelaing.techcup.communications.exception.InvalidTokenException;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.time.Duration;
 import java.util.List;
@@ -57,10 +60,11 @@ class JwtServiceTest {
         assertThatThrownBy(() -> jwtService.parse(token)).isInstanceOf(InvalidTokenException.class);
     }
 
-    @Test
-    void rejectsAMissingOrMalformedAuthorizationHeader() {
-        assertThatThrownBy(() -> jwtService.parseBearer(null)).isInstanceOf(InvalidTokenException.class);
-        assertThatThrownBy(() -> jwtService.parseBearer("Basic dXNlcjpwYXNz"))
-                .isInstanceOf(InvalidTokenException.class);
+    @ParameterizedTest
+    @NullSource
+    // A header shorter than the prefix must be refused before it is ever sliced.
+    @ValueSource(strings = {"Basic dXNlcjpwYXNz", "Bearer", "x", ""})
+    void rejectsAMissingOrMalformedAuthorizationHeader(String header) {
+        assertThatThrownBy(() -> jwtService.parseBearer(header)).isInstanceOf(InvalidTokenException.class);
     }
 }
