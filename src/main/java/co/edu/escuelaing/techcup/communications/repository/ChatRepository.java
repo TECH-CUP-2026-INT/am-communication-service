@@ -30,4 +30,8 @@ public interface ChatRepository extends JpaRepository<Chat, UUID> {
     @Query("select c from Chat c where exists "
             + "(select 1 from Participant p where p.chat = c and p.userId = :userId)")
     List<Chat> findAllByParticipantUserId(@Param("userId") UUID userId);
+
+    /** Membership check for guards that must not pay for loading the chat. */
+    @Query("select count(p) > 0 from Participant p where p.chat.id = :chatId and p.userId = :userId")
+    boolean isParticipant(@Param("chatId") UUID chatId, @Param("userId") UUID userId);
 }
