@@ -1,6 +1,8 @@
 package co.edu.escuelaing.techcup.communications.controller;
 
+import co.edu.escuelaing.techcup.communications.config.AuthenticatedUser;
 import co.edu.escuelaing.techcup.communications.dto.SupportSendRequest;
+import co.edu.escuelaing.techcup.communications.entity.enums.ParticipantRole;
 import co.edu.escuelaing.techcup.communications.service.ReplySupportTicketUseCase;
 import co.edu.escuelaing.techcup.communications.service.command.ReplySupportTicketCommand;
 import org.junit.jupiter.api.Test;
@@ -10,6 +12,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,15 +28,17 @@ class SupportWsControllerTest {
     private SupportWsController controller;
 
     @Test
-    void delegatesToReplyUseCase() {
+    void delegatesToReplyUseCaseWithTheSessionPrincipalAsSender() {
         UUID ticketId = UUID.randomUUID();
-        UUID sender = UUID.randomUUID();
-        controller.send(new SupportSendRequest(ticketId, sender, "on it"));
+        AuthenticatedUser caller = new AuthenticatedUser(
+                UUID.randomUUID(), "agent", Set.of(ParticipantRole.MODERATOR.name()));
+
+        controller.send(new SupportSendRequest(ticketId, "on it"), caller);
 
         ArgumentCaptor<ReplySupportTicketCommand> captor = ArgumentCaptor.forClass(ReplySupportTicketCommand.class);
         verify(replySupportTicketUseCase).reply(captor.capture());
         assertThat(captor.getValue().ticketId()).isEqualTo(ticketId);
-        assertThat(captor.getValue().senderId()).isEqualTo(sender);
+        assertThat(captor.getValue().senderId()).isEqualTo(caller.userId());
         assertThat(captor.getValue().content()).isEqualTo("on it");
     }
 }

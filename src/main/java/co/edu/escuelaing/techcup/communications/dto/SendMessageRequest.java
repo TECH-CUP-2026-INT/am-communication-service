@@ -7,9 +7,9 @@ import jakarta.validation.constraints.Size;
 
 import java.util.UUID;
 
+/** The sender is never supplied by the client: it is taken from the JWT. */
 public record SendMessageRequest(
         @NotNull UUID chatId,
-        @NotNull UUID senderId,
         @NotBlank @Size(max = Message.MAX_CONTENT_LENGTH) String content
 ) {
 }

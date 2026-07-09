@@ -12,19 +12,26 @@ import co.edu.escuelaing.techcup.communications.exception.InvalidChatOperationEx
 import co.edu.escuelaing.techcup.communications.exception.ReportedMessageNotFoundException;
 import co.edu.escuelaing.techcup.communications.mapper.ReportMapperImpl;
 import co.edu.escuelaing.techcup.communications.service.ResolveReportUseCase;
+import co.edu.escuelaing.techcup.communications.service.command.ResolveReportCommand;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.UUID;
 
+import static co.edu.escuelaing.techcup.communications.controller.TestCallers.caller;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -57,26 +64,37 @@ class ReportControllerTest {
         return report;
     }
 
+    @AfterEach
+    void clearSecurityContext() {
+        SecurityContextHolder.clearContext();
+    }
+
     @Test
-    void resolveReturns200() throws Exception {
+    void resolveReturns200AndTakesTheModeratorFromTheToken() throws Exception {
         when(resolveReportUseCase.resolve(any())).thenReturn(resolvedReport());
         ResolveReportRequest request = new ResolveReportRequest(
-                moderator, ReportStatus.ACTIONED, "removed", ModeratorActionType.DELETE_MESSAGE);
+                ReportStatus.ACTIONED, "removed", ModeratorActionType.DELETE_MESSAGE);
 
         mockMvc.perform(post("/reports/{id}/resolve", UUID.randomUUID())
+                        .with(caller(moderator, ParticipantRole.MODERATOR.name()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("ACTIONED"));
+
+        ArgumentCaptor<ResolveReportCommand> captor = ArgumentCaptor.forClass(ResolveReportCommand.class);
+        verify(resolveReportUseCase).resolve(captor.capture());
+        assertThat(captor.getValue().moderatorId()).isEqualTo(moderator);
     }
 
     @Test
     void resolveMissingReportReturns404() throws Exception {
         when(resolveReportUseCase.resolve(any())).thenThrow(new ReportedMessageNotFoundException(UUID.randomUUID()));
         ResolveReportRequest request = new ResolveReportRequest(
-                moderator, ReportStatus.DISMISSED, "x", ModeratorActionType.WARN);
+                ReportStatus.DISMISSED, "x", ModeratorActionType.WARN);
 
         mockMvc.perform(post("/reports/{id}/resolve", UUID.randomUUID())
+                        .with(caller(moderator, ParticipantRole.MODERATOR.name()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound());
@@ -86,9 +104,10 @@ class ReportControllerTest {
     void resolveAlreadyResolvedReturns409() throws Exception {
         when(resolveReportUseCase.resolve(any())).thenThrow(new InvalidChatOperationException("already resolved"));
         ResolveReportRequest request = new ResolveReportRequest(
-                moderator, ReportStatus.DISMISSED, "x", ModeratorActionType.WARN);
+                ReportStatus.DISMISSED, "x", ModeratorActionType.WARN);
 
         mockMvc.perform(post("/reports/{id}/resolve", UUID.randomUUID())
+                        .with(caller(moderator, ParticipantRole.MODERATOR.name()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isConflict());

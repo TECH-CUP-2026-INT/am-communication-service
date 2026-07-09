@@ -1,5 +1,6 @@
 package co.edu.escuelaing.techcup.communications.controller;
 
+import co.edu.escuelaing.techcup.communications.config.AuthenticatedUser;
 import co.edu.escuelaing.techcup.communications.dto.CreateSupportTicketRequest;
 import co.edu.escuelaing.techcup.communications.dto.MessageResponse;
 import co.edu.escuelaing.techcup.communications.dto.ReplySupportTicketRequest;
@@ -16,6 +17,7 @@ import co.edu.escuelaing.techcup.communications.service.command.ReplySupportTick
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -39,9 +41,10 @@ public class SupportController {
 
     @PostMapping
     public ResponseEntity<SupportTicketResponse> create(@Valid @RequestBody CreateSupportTicketRequest request,
+                                                        @AuthenticationPrincipal AuthenticatedUser caller,
                                                         UriComponentsBuilder uriBuilder) {
         SupportTicket ticket = createSupportTicketUseCase.create(
-                new CreateSupportTicketCommand(request.requesterId(), request.subject()));
+                new CreateSupportTicketCommand(caller.userId(), request.subject()));
         URI location = uriBuilder.path("/support/tickets/{id}").buildAndExpand(ticket.getId()).toUri();
         return ResponseEntity.created(location).body(supportMapper.toResponse(ticket));
     }
@@ -49,9 +52,10 @@ public class SupportController {
     @PostMapping("/{id}/reply")
     public ResponseEntity<MessageResponse> reply(@PathVariable UUID id,
                                                  @Valid @RequestBody ReplySupportTicketRequest request,
+                                                 @AuthenticationPrincipal AuthenticatedUser caller,
                                                  UriComponentsBuilder uriBuilder) {
         Message message = replySupportTicketUseCase.reply(
-                new ReplySupportTicketCommand(id, request.senderId(), request.content()));
+                new ReplySupportTicketCommand(id, caller.userId(), request.content()));
         URI location = uriBuilder.path("/messages/{id}").buildAndExpand(message.getId()).toUri();
         return ResponseEntity.created(location).body(messageMapper.toResponse(message));
     }

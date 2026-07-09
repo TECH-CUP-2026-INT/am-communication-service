@@ -1,5 +1,6 @@
 package co.edu.escuelaing.techcup.communications.controller;
 
+import co.edu.escuelaing.techcup.communications.config.AuthenticatedUser;
 import co.edu.escuelaing.techcup.communications.dto.ReportedMessageResponse;
 import co.edu.escuelaing.techcup.communications.dto.ResolveReportRequest;
 import co.edu.escuelaing.techcup.communications.entity.ReportedMessage;
@@ -9,6 +10,7 @@ import co.edu.escuelaing.techcup.communications.service.command.ResolveReportCom
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,10 +29,11 @@ public class ReportController {
 
     @PostMapping("/{id}/resolve")
     public ResponseEntity<ReportedMessageResponse> resolve(@PathVariable UUID id,
-                                                           @Valid @RequestBody ResolveReportRequest request) {
+                                                           @Valid @RequestBody ResolveReportRequest request,
+                                                           @AuthenticationPrincipal AuthenticatedUser caller) {
         ReportedMessage report = resolveReportUseCase.resolve(new ResolveReportCommand(
                 id,
-                request.moderatorId(),
+                caller.userId(),
                 request.resolutionStatus(),
                 request.note(),
                 request.actionType()));

@@ -1,5 +1,6 @@
 package co.edu.escuelaing.techcup.communications.controller;
 
+import co.edu.escuelaing.techcup.communications.config.AuthenticatedUser;
 import co.edu.escuelaing.techcup.communications.dto.SendMessageRequest;
 import co.edu.escuelaing.techcup.communications.service.SendMessageUseCase;
 import co.edu.escuelaing.techcup.communications.service.command.SendMessageCommand;
@@ -10,8 +11,9 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Controller;
 
 /**
- * STOMP entry point for chat messages. The send use case persists the message and
- * then publishes it to /topic/chat/{chatId}, so this handler returns nothing.
+ * STOMP entry point for chat messages. The sender is the session principal established on CONNECT.
+ * The send use case persists the message and then publishes it to /topic/chat/{chatId}, so this
+ * handler returns nothing.
  */
 @Controller
 @RequiredArgsConstructor
@@ -20,7 +22,7 @@ public class ChatWsController {
     private final SendMessageUseCase sendMessageUseCase;
 
     @MessageMapping("chat.send")
-    public void send(@Valid @Payload SendMessageRequest request) {
-        sendMessageUseCase.send(new SendMessageCommand(request.chatId(), request.senderId(), request.content()));
+    public void send(@Valid @Payload SendMessageRequest request, AuthenticatedUser caller) {
+        sendMessageUseCase.send(new SendMessageCommand(request.chatId(), caller.userId(), request.content()));
     }
 }
