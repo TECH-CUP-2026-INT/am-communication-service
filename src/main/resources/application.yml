@@ -1,0 +1,36 @@
+spring:
+  application:
+    name: service-communications
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/communications}
+    username: ${DB_USERNAME:communications}
+    password: ${DB_PASSWORD:communications}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: ${JPA_DDL_AUTO:update}
+    properties:
+      hibernate:
+        format_sql: false
+    open-in-view: false
+
+server:
+  port: ${SERVER_PORT:8080}
+
+security:
+  jwt:
+    secret: ${JWT_SECRET:change-me-in-production-this-is-a-development-only-secret-key-hs256}
+
+integrations:
+  user-service:
+    base-url: ${USER_SERVICE_URL:http://localhost:8081}
+  team-service:
+    base-url: ${TEAM_SERVICE_URL:http://localhost:8082}
+  notification-service:
+    base-url: ${NOTIFICATION_SERVICE_URL:http://localhost:8083}
+  audit-service:
+    base-url: ${AUDIT_SERVICE_URL:http://localhost:8084}
+
+logging:
+  level:
+    co.edu.escuelaing.techcup.communications: INFO
