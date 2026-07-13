@@ -6,5 +6,5 @@ import java.util.UUID;
 
 public interface GetChatUseCase {
 
-    Chat getById(UUID chatId);
+    Chat getById(UUID chatId, UUID callerId);
 }

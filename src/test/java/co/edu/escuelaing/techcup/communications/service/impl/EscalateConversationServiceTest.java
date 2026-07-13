@@ -3,7 +3,10 @@ package co.edu.escuelaing.techcup.communications.service.impl;
 import co.edu.escuelaing.techcup.communications.entity.Chat;
 import co.edu.escuelaing.techcup.communications.entity.SupportTicket;
 import co.edu.escuelaing.techcup.communications.entity.enums.ChatType;
+import co.edu.escuelaing.techcup.communications.entity.enums.ParticipantRole;
+import co.edu.escuelaing.techcup.communications.exception.ParticipantNotAllowedException;
 import co.edu.escuelaing.techcup.communications.exception.SupportTicketNotFoundException;
+import co.edu.escuelaing.techcup.communications.repository.ChatRepository;
 import co.edu.escuelaing.techcup.communications.repository.SupportTicketRepository;
 import co.edu.escuelaing.techcup.communications.service.support.SupportChainOrchestrator;
 import co.edu.escuelaing.techcup.communications.service.support.SupportResult;
@@ -29,26 +32,33 @@ class EscalateConversationServiceTest {
     private SupportTicketRepository supportTicketRepository;
 
     @Mock
+    private ChatRepository chatRepository;
+
+    @Mock
     private SupportChainOrchestrator supportChainOrchestrator;
 
     @InjectMocks
     private EscalateConversationService service;
 
+    private final UUID caller = UUID.randomUUID();
+
     private SupportTicket newTicket() {
         Chat chat = Chat.create(ChatType.SUPPORT, null);
+        chat.addParticipant(caller, ParticipantRole.MEMBER);
         return SupportTicket.open(chat, UUID.randomUUID(), "issue");
     }
 
     @Test
-    void runsChainAndPersists() {
+    void runsChainAndPersistsWhenCallerIsParticipant() {
         SupportTicket ticket = newTicket();
         when(supportTicketRepository.findById(ticket.getId())).thenReturn(Optional.of(ticket));
+        when(chatRepository.isParticipant(ticket.getChatId(), caller)).thenReturn(true);
         when(supportTicketRepository.save(ticket)).thenReturn(ticket);
-        when(supportChainOrchestrator.process(ticket)).thenReturn(SupportResult.pending(ticket.getCurrentLevel()));
+        when(supportChainOrchestrator.escalate(ticket)).thenReturn(SupportResult.pending(ticket.getCurrentLevel()));
 
-        service.escalate(ticket.getId());
+        service.escalate(ticket.getId(), caller);
 
-        verify(supportChainOrchestrator).process(ticket);
+        verify(supportChainOrchestrator).escalate(ticket);
         verify(supportTicketRepository).save(ticket);
     }
 
@@ -57,7 +67,18 @@ class EscalateConversationServiceTest {
         UUID id = UUID.randomUUID();
         when(supportTicketRepository.findById(id)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.escalate(id)).isInstanceOf(SupportTicketNotFoundException.class);
-        verify(supportChainOrchestrator, never()).process(any());
+        assertThatThrownBy(() -> service.escalate(id, caller)).isInstanceOf(SupportTicketNotFoundException.class);
+        verify(supportChainOrchestrator, never()).escalate(any());
+    }
+
+    @Test
+    void throwsWhenCallerIsNotAParticipant() {
+        SupportTicket ticket = newTicket();
+        when(supportTicketRepository.findById(ticket.getId())).thenReturn(Optional.of(ticket));
+        when(chatRepository.isParticipant(ticket.getChatId(), caller)).thenReturn(false);
+
+        assertThatThrownBy(() -> service.escalate(ticket.getId(), caller))
+                .isInstanceOf(ParticipantNotAllowedException.class);
+        verify(supportChainOrchestrator, never()).escalate(any());
     }
 }

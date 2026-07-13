@@ -40,6 +40,33 @@ class MessageTest {
     }
 
     @Test
+    void rejectsControlCharacters() {
+        Chat chat = chatWithSender();
+        String withNulByte = "hello" + '\u0000' + "world";
+
+        assertThatThrownBy(() -> chat.postMessage(sender, withNulByte))
+                .isInstanceOf(InvalidChatOperationException.class);
+    }
+
+    @Test
+    void rejectsAnsiEscapeSequences() {
+        Chat chat = chatWithSender();
+        String withEscapeSequence = "hello" + '\u001B' + "[31mworld";
+
+        assertThatThrownBy(() -> chat.postMessage(sender, withEscapeSequence))
+                .isInstanceOf(InvalidChatOperationException.class);
+    }
+
+    @Test
+    void allowsNewlinesAndTabs() {
+        String content = "line one" + '\n' + "line two" + '\t' + "indented";
+
+        Message message = chatWithSender().postMessage(sender, content);
+
+        assertThat(message.getContent()).isEqualTo(content);
+    }
+
+    @Test
     void marksMessageAsReported() {
         Message message = chatWithSender().postMessage(sender, "hi");
 

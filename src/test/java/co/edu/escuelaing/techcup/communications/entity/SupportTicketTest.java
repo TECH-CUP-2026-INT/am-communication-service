@@ -21,12 +21,12 @@ class SupportTicketTest {
     }
 
     @Test
-    void opensAtChatbotLevelAndOpenStatus() {
+    void opensAtFaqLevelAndOpenStatus() {
         SupportTicket ticket = newTicket();
 
         assertThat(ticket.getId()).isNotNull();
         assertThat(ticket.getStatus()).isEqualTo(SupportTicketStatus.OPEN);
-        assertThat(ticket.getCurrentLevel()).isEqualTo(SupportLevel.CHATBOT);
+        assertThat(ticket.getCurrentLevel()).isEqualTo(SupportLevel.FAQ);
         assertThat(ticket.getRequesterId()).isEqualTo(requester);
         assertThat(ticket.getChatId()).isNotNull();
     }
@@ -43,9 +43,9 @@ class SupportTicketTest {
     void escalatesToNextLevelAndFlagsEscalated() {
         SupportTicket ticket = newTicket();
 
-        ticket.escalateTo(SupportLevel.AUTOMATIC);
+        ticket.escalateTo(SupportLevel.CHATBOT);
 
-        assertThat(ticket.getCurrentLevel()).isEqualTo(SupportLevel.AUTOMATIC);
+        assertThat(ticket.getCurrentLevel()).isEqualTo(SupportLevel.CHATBOT);
         assertThat(ticket.getStatus()).isEqualTo(SupportTicketStatus.ESCALATED);
     }
 
@@ -93,7 +93,7 @@ class SupportTicketTest {
     void updatedAtAdvancesOnTransition() {
         SupportTicket ticket = newTicket();
 
-        ticket.escalateTo(SupportLevel.AUTOMATIC);
+        ticket.escalateTo(SupportLevel.CHATBOT);
 
         assertThat(ticket.getUpdatedAt()).isAfterOrEqualTo(ticket.getCreatedAt());
     }

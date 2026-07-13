@@ -21,7 +21,7 @@
 | Resource | Description |
 |---------|-------------|
 | [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/) | Theme used for this documentation. |
-| [MkDocs](https://www.mkdocs.org/) | Documentation site generator. |
+| [MkDocs](https://www.mkdocs.org/) | Documentation site generator. | 
 
 ### Serving this documentation locally
 

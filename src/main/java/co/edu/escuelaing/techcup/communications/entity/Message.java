@@ -92,6 +92,7 @@ public class Message {
         if (content.length() > MAX_CONTENT_LENGTH) {
             throw new InvalidChatOperationException("Message content exceeds " + MAX_CONTENT_LENGTH + " characters");
         }
+        TextValidation.rejectControlCharacters(content, "Message content");
         return content;
     }
 }

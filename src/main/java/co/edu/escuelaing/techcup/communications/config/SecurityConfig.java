@@ -10,6 +10,11 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 /**
  * Stateless resource-server configuration. This microservice only validates tokens;
@@ -19,17 +24,33 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class SecurityConfig {
 
+    /**
+     * cc-identity-service has no {@code MODERATOR} role of its own; its administrative role is
+     * {@code ADMIN}. Accepting it here lets identity-issued tokens reach moderation endpoints
+     * without requiring a role this service invented.
+     */
+    static final String IDENTITY_ADMIN_ROLE = "ADMIN";
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtService jwtService,
-                                                   SecurityErrorResponder errorResponder) throws Exception {
+                                                   SecurityErrorResponder errorResponder,
+                                                   CorsConfigurationSource corsConfigurationSource) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(requests -> requests
                         // The STOMP CONNECT frame is authenticated by WsAuthChannelInterceptor.
                         .requestMatchers("/ws/**").permitAll()
+                        // Prometheus scrapes without a JWT; the rest of Actuator stays behind auth.
+                        .requestMatchers("/actuator/health", "/actuator/info", "/actuator/prometheus").permitAll()
                         .requestMatchers(HttpMethod.POST, "/reports/*/resolve")
-                        .hasAnyRole(ParticipantRole.MODERATOR.name(), ParticipantRole.ORGANIZER.name())
+                        .hasAnyRole(ParticipantRole.MODERATOR.name(), ParticipantRole.ORGANIZER.name(),
+                                IDENTITY_ADMIN_ROLE)
+                        // FAQ management (including reads) is a moderation/admin task, not member-facing.
+                        .requestMatchers("/faqs", "/faqs/*")
+                        .hasAnyRole(ParticipantRole.MODERATOR.name(), ParticipantRole.ORGANIZER.name(),
+                                IDENTITY_ADMIN_ROLE)
                         .anyRequest().authenticated())
                 .exceptionHandling(handling -> handling
                         .authenticationEntryPoint(errorResponder)
@@ -37,5 +58,16 @@ public class SecurityConfig {
                 .addFilterBefore(new JwtAuthenticationFilter(jwtService, errorResponder),
                         UsernamePasswordAuthenticationFilter.class)
                 .build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource(WebSocketProperties webSocketProperties) {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOriginPatterns(webSocketProperties.allowedOrigins());
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }

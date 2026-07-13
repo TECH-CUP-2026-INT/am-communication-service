@@ -95,10 +95,47 @@ class SecurityConfigTest {
     }
 
     @Test
+    void allowsReportResolutionToIdentityAdmins() throws Exception {
+        // cc-identity-service has no MODERATOR role; ADMIN is its equivalent administrative role.
+        mockMvc.perform(post("/reports/{id}/resolve", UUID.randomUUID())
+                        .header(HttpHeaders.AUTHORIZATION, bearerFor("ADMIN"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(resolveBody()))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deniesFaqManagementToPlainMembers() throws Exception {
+        mockMvc.perform(get("/faqs")
+                        .header(HttpHeaders.AUTHORIZATION, bearerFor(ParticipantRole.MEMBER.name())))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void allowsFaqManagementToModerators() throws Exception {
+        mockMvc.perform(get("/faqs")
+                        .header(HttpHeaders.AUTHORIZATION, bearerFor(ParticipantRole.MODERATOR.name())))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void allowsFaqManagementToIdentityAdmins() throws Exception {
+        mockMvc.perform(get("/faqs")
+                        .header(HttpHeaders.AUTHORIZATION, bearerFor("ADMIN")))
+                .andExpect(status().isOk());
+    }
+
+    @Test
     void leavesTheWebSocketHandshakeOpenSoStompCanAuthenticateOnConnect() throws Exception {
         int status = mockMvc.perform(get("/ws")).andReturn().getResponse().getStatus();
 
         assertThat(status).isNotIn(401, 403);
+    }
+
+    @Test
+    void rejectsTheWebSocketHandshakeFromADisallowedOrigin() throws Exception {
+        mockMvc.perform(get("/ws").header(HttpHeaders.ORIGIN, "https://evil.example.com"))
+                .andExpect(status().isForbidden());
     }
 
     @Test

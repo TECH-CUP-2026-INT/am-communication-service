@@ -105,6 +105,7 @@ public class ReportedMessage {
         if (reason.length() > MAX_REASON_LENGTH) {
             throw new InvalidChatOperationException("Reason exceeds " + MAX_REASON_LENGTH + " characters");
         }
+        TextValidation.rejectControlCharacters(reason, "Report reason");
         return reason;
     }
 }

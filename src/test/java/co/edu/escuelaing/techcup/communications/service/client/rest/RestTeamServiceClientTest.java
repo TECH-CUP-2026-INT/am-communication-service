@@ -52,4 +52,16 @@ class RestTeamServiceClientTest {
 
         assertThatThrownBy(() -> client.exists(teamId)).isInstanceOf(IntegrationException.class);
     }
+
+    @Test
+    void treatsEveryTeamAsExistingWhenTheCheckIsDisabled() {
+        // cc-teams-service is still an empty skeleton; the check stays off until it exposes a lookup.
+        RestClient.Builder builder = RestClient.builder();
+        MockRestServiceServer disabledServer = MockRestServiceServer.bindTo(builder).build();
+        RestTeamServiceClient disabledClient = new RestTeamServiceClient(
+                builder, IntegrationTestProperties.pointingAt(BASE_URL, false));
+
+        assertThat(disabledClient.exists(teamId)).isTrue();
+        disabledServer.verify();
+    }
 }

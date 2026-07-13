@@ -6,5 +6,5 @@ import java.util.UUID;
 
 public interface EscalateConversationUseCase {
 
-    SupportTicket escalate(UUID ticketId);
+    SupportTicket escalate(UUID ticketId, UUID callerId);
 }

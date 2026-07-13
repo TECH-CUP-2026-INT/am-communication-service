@@ -15,6 +15,16 @@ public record IntegrationProperties(
         @NotNull @Valid Endpoint notificationService,
         @NotNull @Valid Endpoint auditService
 ) {
-    public record Endpoint(@NotBlank String baseUrl) {
+    /**
+     * @param existenceCheckEnabled whether {@code exists(id)} actually calls the downstream
+     *                              service. Defaults to {@code true}; set to {@code false} while
+     *                              a dependency (e.g. cc-teams-service, still a bare skeleton)
+     *                              exposes no lookup endpoint yet, so callers aren't blocked.
+     */
+    public record Endpoint(@NotBlank String baseUrl, Boolean existenceCheckEnabled) {
+
+        public Endpoint {
+            existenceCheckEnabled = existenceCheckEnabled == null || existenceCheckEnabled;
+        }
     }
 }

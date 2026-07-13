@@ -2,8 +2,10 @@ package co.edu.escuelaing.techcup.communications.service.impl;
 
 import co.edu.escuelaing.techcup.communications.entity.Chat;
 import co.edu.escuelaing.techcup.communications.entity.enums.ChatType;
+import co.edu.escuelaing.techcup.communications.entity.enums.ParticipantRole;
 import co.edu.escuelaing.techcup.communications.exception.ChatNotFoundException;
 import co.edu.escuelaing.techcup.communications.exception.InvalidChatOperationException;
+import co.edu.escuelaing.techcup.communications.exception.ParticipantNotAllowedException;
 import co.edu.escuelaing.techcup.communications.repository.ChatRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,13 +32,16 @@ class CloseChatServiceTest {
     @InjectMocks
     private CloseChatService service;
 
+    private final UUID caller = UUID.randomUUID();
+
     @Test
-    void closesOpenChat() {
+    void closesOpenChatWhenCallerIsParticipant() {
         Chat chat = Chat.create(ChatType.DIRECT, null);
+        chat.addParticipant(caller, ParticipantRole.MEMBER);
         when(chatRepository.findById(chat.getId())).thenReturn(Optional.of(chat));
         when(chatRepository.save(any(Chat.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        Chat result = service.close(chat.getId());
+        Chat result = service.close(chat.getId(), caller);
 
         assertThat(result.isClosed()).isTrue();
         verify(chatRepository).save(chat);
@@ -47,18 +52,30 @@ class CloseChatServiceTest {
         UUID id = UUID.randomUUID();
         when(chatRepository.findById(id)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.close(id)).isInstanceOf(ChatNotFoundException.class);
+        assertThatThrownBy(() -> service.close(id, caller)).isInstanceOf(ChatNotFoundException.class);
         verify(chatRepository, never()).save(any());
     }
 
     @Test
     void rejectsClosingAlreadyClosedChat() {
         Chat chat = Chat.create(ChatType.DIRECT, null);
+        chat.addParticipant(caller, ParticipantRole.MEMBER);
         chat.close();
         when(chatRepository.findById(chat.getId())).thenReturn(Optional.of(chat));
 
-        assertThatThrownBy(() -> service.close(chat.getId()))
+        assertThatThrownBy(() -> service.close(chat.getId(), caller))
                 .isInstanceOf(InvalidChatOperationException.class);
+        verify(chatRepository, never()).save(any());
+    }
+
+    @Test
+    void throwsWhenCallerIsNotAParticipant() {
+        Chat chat = Chat.create(ChatType.DIRECT, null);
+        chat.addParticipant(UUID.randomUUID(), ParticipantRole.MEMBER);
+        when(chatRepository.findById(chat.getId())).thenReturn(Optional.of(chat));
+
+        assertThatThrownBy(() -> service.close(chat.getId(), caller))
+                .isInstanceOf(ParticipantNotAllowedException.class);
         verify(chatRepository, never()).save(any());
     }
 }

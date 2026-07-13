@@ -6,5 +6,5 @@ import java.util.UUID;
 
 public interface CloseChatUseCase {
 
-    Chat close(UUID chatId);
+    Chat close(UUID chatId, UUID callerId);
 }

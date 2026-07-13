@@ -57,10 +57,23 @@ class ChatRepositoryTest {
         em.flush();
         em.clear();
 
-        List<Chat> chatsOfA = chatRepository.findDistinctByParticipants_UserId(userA);
-        List<Chat> chatsOfB = chatRepository.findDistinctByParticipants_UserId(userB);
+        List<Chat> chatsOfA = chatRepository.findAllByParticipantUserId(userA);
+        List<Chat> chatsOfB = chatRepository.findAllByParticipantUserId(userB);
 
         assertThat(chatsOfA).hasSize(2);
         assertThat(chatsOfB).hasSize(1);
+    }
+
+    @Test
+    void recognisesOnlyTheParticipantsOfAChat() {
+        Chat chat = Chat.create(ChatType.DIRECT, null);
+        chat.addParticipant(userA, ParticipantRole.MEMBER);
+        UUID id = chatRepository.save(chat).getId();
+        em.flush();
+        em.clear();
+
+        assertThat(chatRepository.isParticipant(id, userA)).isTrue();
+        assertThat(chatRepository.isParticipant(id, userB)).isFalse();
+        assertThat(chatRepository.isParticipant(UUID.randomUUID(), userA)).isFalse();
     }
 }

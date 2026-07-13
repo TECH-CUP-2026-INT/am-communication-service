@@ -20,6 +20,7 @@ public class GlobalExceptionHandler {
             MessageNotFoundException.class,
             SupportTicketNotFoundException.class,
             ReportedMessageNotFoundException.class,
+            FaqNotFoundException.class,
             UserNotFoundException.class,
             TeamNotFoundException.class
     })
@@ -33,7 +34,7 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.BAD_GATEWAY, ex.getMessage(), request);
     }
 
-    @ExceptionHandler(ParticipantNotAllowedException.class)
+    @ExceptionHandler({ParticipantNotAllowedException.class, UserAccessNotAllowedException.class})
     public ResponseEntity<ErrorResponse> handleForbidden(DomainException ex, HttpServletRequest request) {
         return build(HttpStatus.FORBIDDEN, ex.getMessage(), request);
     }

@@ -8,5 +8,5 @@ import java.util.UUID;
 
 public interface GetChatMessagesUseCase {
 
-    Page<Message> getByChat(UUID chatId, Pageable pageable);
+    Page<Message> getByChat(UUID chatId, Pageable pageable, UUID callerId);
 }

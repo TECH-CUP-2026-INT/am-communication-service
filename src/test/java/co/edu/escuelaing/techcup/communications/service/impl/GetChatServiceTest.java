@@ -2,7 +2,9 @@ package co.edu.escuelaing.techcup.communications.service.impl;
 
 import co.edu.escuelaing.techcup.communications.entity.Chat;
 import co.edu.escuelaing.techcup.communications.entity.enums.ChatType;
+import co.edu.escuelaing.techcup.communications.entity.enums.ParticipantRole;
 import co.edu.escuelaing.techcup.communications.exception.ChatNotFoundException;
+import co.edu.escuelaing.techcup.communications.exception.ParticipantNotAllowedException;
 import co.edu.escuelaing.techcup.communications.repository.ChatRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,12 +28,15 @@ class GetChatServiceTest {
     @InjectMocks
     private GetChatService service;
 
+    private final UUID caller = UUID.randomUUID();
+
     @Test
-    void returnsChatWhenFound() {
+    void returnsChatWhenCallerIsParticipant() {
         Chat chat = Chat.create(ChatType.DIRECT, null);
+        chat.addParticipant(caller, ParticipantRole.MEMBER);
         when(chatRepository.findById(chat.getId())).thenReturn(Optional.of(chat));
 
-        assertThat(service.getById(chat.getId())).isSameAs(chat);
+        assertThat(service.getById(chat.getId(), caller)).isSameAs(chat);
     }
 
     @Test
@@ -39,7 +44,17 @@ class GetChatServiceTest {
         UUID id = UUID.randomUUID();
         when(chatRepository.findById(id)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.getById(id))
+        assertThatThrownBy(() -> service.getById(id, caller))
                 .isInstanceOf(ChatNotFoundException.class);
+    }
+
+    @Test
+    void throwsWhenCallerIsNotAParticipant() {
+        Chat chat = Chat.create(ChatType.DIRECT, null);
+        chat.addParticipant(UUID.randomUUID(), ParticipantRole.MEMBER);
+        when(chatRepository.findById(chat.getId())).thenReturn(Optional.of(chat));
+
+        assertThatThrownBy(() -> service.getById(chat.getId(), caller))
+                .isInstanceOf(ParticipantNotAllowedException.class);
     }
 }

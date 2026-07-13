@@ -74,7 +74,7 @@ public class SupportTicket {
         this.requesterId = Objects.requireNonNull(requesterId, "requesterId is required");
         this.subject = validateSubject(subject);
         this.status = SupportTicketStatus.OPEN;
-        this.currentLevel = SupportLevel.CHATBOT;
+        this.currentLevel = SupportLevel.FAQ;
         this.createdAt = Instant.now();
         this.updatedAt = this.createdAt;
     }
@@ -140,6 +140,7 @@ public class SupportTicket {
         if (subject.length() > MAX_SUBJECT_LENGTH) {
             throw new InvalidChatOperationException("Subject exceeds " + MAX_SUBJECT_LENGTH + " characters");
         }
+        TextValidation.rejectControlCharacters(subject, "Support ticket subject");
         return subject;
     }
 }

@@ -2,11 +2,11 @@ package co.edu.escuelaing.techcup.communications.entity.enums;
 
 /**
  * Support escalation levels ordered from first to last.
- * The escalation flow is: CHATBOT -> AUTOMATIC -> MODERATOR -> ORGANIZER -> PENDING.
+ * The escalation flow is: FAQ -> CHATBOT -> MODERATOR -> ORGANIZER -> PENDING.
  */
 public enum SupportLevel {
+    FAQ,
     CHATBOT,
-    AUTOMATIC,
     MODERATOR,
     ORGANIZER,
     PENDING;

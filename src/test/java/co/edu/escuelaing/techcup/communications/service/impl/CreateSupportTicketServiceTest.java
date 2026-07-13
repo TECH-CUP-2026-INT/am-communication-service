@@ -8,6 +8,8 @@ import co.edu.escuelaing.techcup.communications.repository.ChatRepository;
 import co.edu.escuelaing.techcup.communications.repository.SupportTicketRepository;
 import co.edu.escuelaing.techcup.communications.service.client.AuditServiceClient;
 import co.edu.escuelaing.techcup.communications.service.command.CreateSupportTicketCommand;
+import co.edu.escuelaing.techcup.communications.service.support.SupportBotIdentity;
+import co.edu.escuelaing.techcup.communications.service.support.SupportChainOrchestrator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -34,13 +36,16 @@ class CreateSupportTicketServiceTest {
     @Mock
     private AuditServiceClient auditServiceClient;
 
+    @Mock
+    private SupportChainOrchestrator supportChainOrchestrator;
+
     @InjectMocks
     private CreateSupportTicketService service;
 
     private final UUID requester = UUID.randomUUID();
 
     @Test
-    void createsSupportChatAndTicketAtChatbotLevel() {
+    void createsSupportChatAndTicketAtFaqLevel() {
         when(chatRepository.save(any(Chat.class))).thenAnswer(inv -> inv.getArgument(0));
         when(supportTicketRepository.save(any(SupportTicket.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -48,8 +53,11 @@ class CreateSupportTicketServiceTest {
 
         assertThat(ticket.getRequesterId()).isEqualTo(requester);
         assertThat(ticket.getStatus()).isEqualTo(SupportTicketStatus.OPEN);
-        assertThat(ticket.getCurrentLevel()).isEqualTo(SupportLevel.CHATBOT);
+        assertThat(ticket.getCurrentLevel()).isEqualTo(SupportLevel.FAQ);
+        assertThat(ticket.getChat().isParticipant(requester)).isTrue();
+        assertThat(ticket.getChat().isParticipant(SupportBotIdentity.BOT_USER_ID)).isTrue();
         verify(chatRepository).save(any(Chat.class));
         verify(auditServiceClient).record(eq("SUPPORT_TICKET_CREATED"), any(), any());
+        verify(supportChainOrchestrator).runAutomatedStage(ticket);
     }
 }

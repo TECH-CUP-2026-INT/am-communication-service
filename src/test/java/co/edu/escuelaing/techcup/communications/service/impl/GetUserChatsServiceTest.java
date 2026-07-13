@@ -28,7 +28,7 @@ class GetUserChatsServiceTest {
     void returnsChatsForUser() {
         UUID userId = UUID.randomUUID();
         List<Chat> chats = List.of(Chat.create(ChatType.DIRECT, null), Chat.create(ChatType.SUPPORT, null));
-        when(chatRepository.findDistinctByParticipants_UserId(userId)).thenReturn(chats);
+        when(chatRepository.findAllByParticipantUserId(userId)).thenReturn(chats);
 
         assertThat(service.getByUser(userId)).isEqualTo(chats);
     }
@@ -36,7 +36,7 @@ class GetUserChatsServiceTest {
     @Test
     void returnsEmptyWhenUserHasNoChats() {
         UUID userId = UUID.randomUUID();
-        when(chatRepository.findDistinctByParticipants_UserId(userId)).thenReturn(List.of());
+        when(chatRepository.findAllByParticipantUserId(userId)).thenReturn(List.of());
 
         assertThat(service.getByUser(userId)).isEmpty();
     }
