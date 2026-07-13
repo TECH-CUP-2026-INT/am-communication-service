@@ -18,4 +18,14 @@ public record AuthenticatedUser(UUID userId, String username, Set<String> roles)
     public String getName() {
         return username;
     }
+
+    /** Accepts either the bare role name or its {@code ROLE_}-prefixed authority form. */
+    public boolean hasAnyRole(String... roleNames) {
+        for (String candidate : roleNames) {
+            if (roles.contains(candidate) || roles.contains("ROLE_" + candidate)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

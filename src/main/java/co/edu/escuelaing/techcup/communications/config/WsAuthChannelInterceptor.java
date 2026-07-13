@@ -1,6 +1,7 @@
 package co.edu.escuelaing.techcup.communications.config;
 
 import co.edu.escuelaing.techcup.communications.exception.InvalidTokenException;
+import co.edu.escuelaing.techcup.communications.exception.SubscriptionNotAllowedException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.messaging.Message;
@@ -22,6 +23,7 @@ public class WsAuthChannelInterceptor implements ChannelInterceptor {
 
     private final JwtService jwtService;
     private final SubscriptionAuthorizer subscriptionAuthorizer;
+    private final WebSocketMetrics metrics;
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -31,7 +33,7 @@ public class WsAuthChannelInterceptor implements ChannelInterceptor {
         }
         switch (accessor.getCommand()) {
             case CONNECT -> accessor.setUser(authenticate(accessor));
-            case SUBSCRIBE -> subscriptionAuthorizer.authorize(accessor.getDestination(), principalOf(accessor));
+            case SUBSCRIBE -> authorizeSubscription(accessor);
             default -> {
                 // Every other frame reuses the principal established on CONNECT.
             }
@@ -40,7 +42,21 @@ public class WsAuthChannelInterceptor implements ChannelInterceptor {
     }
 
     private AuthenticatedUser authenticate(StompHeaderAccessor accessor) {
-        return jwtService.parseBearer(accessor.getFirstNativeHeader(HttpHeaders.AUTHORIZATION));
+        try {
+            return jwtService.parseBearer(accessor.getFirstNativeHeader(HttpHeaders.AUTHORIZATION));
+        } catch (InvalidTokenException ex) {
+            metrics.recordAuthFailure();
+            throw ex;
+        }
+    }
+
+    private void authorizeSubscription(StompHeaderAccessor accessor) {
+        try {
+            subscriptionAuthorizer.authorize(accessor.getDestination(), principalOf(accessor));
+        } catch (SubscriptionNotAllowedException ex) {
+            metrics.recordSubscriptionDenied(accessor.getDestination());
+            throw ex;
+        }
     }
 
     private AuthenticatedUser principalOf(StompHeaderAccessor accessor) {

@@ -61,8 +61,9 @@ public class SupportController {
     }
 
     @PostMapping("/{id}/escalate")
-    public ResponseEntity<SupportTicketResponse> escalate(@PathVariable UUID id) {
-        SupportTicket ticket = escalateConversationUseCase.escalate(id);
+    public ResponseEntity<SupportTicketResponse> escalate(@PathVariable UUID id,
+                                                           @AuthenticationPrincipal AuthenticatedUser caller) {
+        SupportTicket ticket = escalateConversationUseCase.escalate(id, caller.userId());
         return ResponseEntity.ok(supportMapper.toResponse(ticket));
     }
 }

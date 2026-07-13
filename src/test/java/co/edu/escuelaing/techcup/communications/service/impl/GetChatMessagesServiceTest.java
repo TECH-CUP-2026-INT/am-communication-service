@@ -2,6 +2,7 @@ package co.edu.escuelaing.techcup.communications.service.impl;
 
 import co.edu.escuelaing.techcup.communications.entity.Message;
 import co.edu.escuelaing.techcup.communications.exception.ChatNotFoundException;
+import co.edu.escuelaing.techcup.communications.exception.ParticipantNotAllowedException;
 import co.edu.escuelaing.techcup.communications.repository.ChatRepository;
 import co.edu.escuelaing.techcup.communications.repository.MessageRepository;
 import org.junit.jupiter.api.Test;
@@ -36,23 +37,35 @@ class GetChatMessagesServiceTest {
     private GetChatMessagesService service;
 
     private final UUID chatId = UUID.randomUUID();
+    private final UUID caller = UUID.randomUUID();
     private final Pageable pageable = PageRequest.of(0, 20);
 
     @Test
-    void returnsPageWhenChatExists() {
+    void returnsPageWhenChatExistsAndCallerIsParticipant() {
         Page<Message> page = new PageImpl<>(List.of());
         when(chatRepository.existsById(chatId)).thenReturn(true);
+        when(chatRepository.isParticipant(chatId, caller)).thenReturn(true);
         when(messageRepository.findByChat_Id(chatId, pageable)).thenReturn(page);
 
-        assertThat(service.getByChat(chatId, pageable)).isSameAs(page);
+        assertThat(service.getByChat(chatId, pageable, caller)).isSameAs(page);
     }
 
     @Test
     void throwsWhenChatDoesNotExist() {
         when(chatRepository.existsById(chatId)).thenReturn(false);
 
-        assertThatThrownBy(() -> service.getByChat(chatId, pageable))
+        assertThatThrownBy(() -> service.getByChat(chatId, pageable, caller))
                 .isInstanceOf(ChatNotFoundException.class);
+        verify(messageRepository, never()).findByChat_Id(chatId, pageable);
+    }
+
+    @Test
+    void throwsWhenCallerIsNotAParticipant() {
+        when(chatRepository.existsById(chatId)).thenReturn(true);
+        when(chatRepository.isParticipant(chatId, caller)).thenReturn(false);
+
+        assertThatThrownBy(() -> service.getByChat(chatId, pageable, caller))
+                .isInstanceOf(ParticipantNotAllowedException.class);
         verify(messageRepository, never()).findByChat_Id(chatId, pageable);
     }
 }

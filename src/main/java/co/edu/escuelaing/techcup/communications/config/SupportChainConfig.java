@@ -1,7 +1,7 @@
 package co.edu.escuelaing.techcup.communications.config;
 
-import co.edu.escuelaing.techcup.communications.service.support.AutomaticSupportHandler;
 import co.edu.escuelaing.techcup.communications.service.support.ChatbotSupportHandler;
+import co.edu.escuelaing.techcup.communications.service.support.FaqSupportHandler;
 import co.edu.escuelaing.techcup.communications.service.support.ModeratorSupportHandler;
 import co.edu.escuelaing.techcup.communications.service.support.OrganizerSupportHandler;
 import co.edu.escuelaing.techcup.communications.service.support.SupportHandler;
@@ -16,16 +16,14 @@ import org.springframework.context.annotation.Configuration;
 public class SupportChainConfig {
 
     @Bean
-    public SupportHandler supportChainHead() {
-        SupportHandler chatbot = new ChatbotSupportHandler();
-        SupportHandler automatic = new AutomaticSupportHandler();
+    public SupportHandler supportChainHead(FaqSupportHandler faq, ChatbotSupportHandler chatbot) {
         SupportHandler moderator = new ModeratorSupportHandler();
         SupportHandler organizer = new OrganizerSupportHandler();
 
-        chatbot.setNext(automatic);
-        automatic.setNext(moderator);
+        faq.setNext(chatbot);
+        chatbot.setNext(moderator);
         moderator.setNext(organizer);
 
-        return chatbot;
+        return faq;
     }
 }

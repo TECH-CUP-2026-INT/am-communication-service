@@ -1,6 +1,3 @@
-/* Paleta personalizada Astro Merge: morado + dorado */
-
-/* Modo claro */
 [data-md-color-scheme="default"] {
   --md-primary-fg-color:        #6a1b9a; /* morado */
   --md-primary-fg-color--light: #8e24aa;

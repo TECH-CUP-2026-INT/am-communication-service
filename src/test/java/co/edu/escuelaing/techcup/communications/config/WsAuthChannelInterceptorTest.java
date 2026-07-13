@@ -34,6 +34,9 @@ class WsAuthChannelInterceptorTest {
     private SubscriptionAuthorizer subscriptionAuthorizer;
 
     @Mock
+    private WebSocketMetrics metrics;
+
+    @Mock
     private MessageChannel channel;
 
     @InjectMocks
@@ -73,6 +76,7 @@ class WsAuthChannelInterceptorTest {
         Message<byte[]> message = messageFor(accessor);
         assertThatThrownBy(() -> interceptor.preSend(message, channel))
                 .isInstanceOf(InvalidTokenException.class);
+        verify(metrics).recordAuthFailure();
     }
 
     @Test
@@ -109,6 +113,7 @@ class WsAuthChannelInterceptorTest {
         Message<byte[]> message = messageFor(accessor);
         assertThatThrownBy(() -> interceptor.preSend(message, channel))
                 .isInstanceOf(SubscriptionNotAllowedException.class);
+        verify(metrics).recordSubscriptionDenied(destination);
     }
 
     @Test

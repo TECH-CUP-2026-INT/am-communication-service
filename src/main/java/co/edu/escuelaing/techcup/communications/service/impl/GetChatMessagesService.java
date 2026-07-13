@@ -2,6 +2,7 @@ package co.edu.escuelaing.techcup.communications.service.impl;
 
 import co.edu.escuelaing.techcup.communications.entity.Message;
 import co.edu.escuelaing.techcup.communications.exception.ChatNotFoundException;
+import co.edu.escuelaing.techcup.communications.exception.ParticipantNotAllowedException;
 import co.edu.escuelaing.techcup.communications.repository.ChatRepository;
 import co.edu.escuelaing.techcup.communications.repository.MessageRepository;
 import co.edu.escuelaing.techcup.communications.service.GetChatMessagesUseCase;
@@ -22,9 +23,12 @@ public class GetChatMessagesService implements GetChatMessagesUseCase {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<Message> getByChat(UUID chatId, Pageable pageable) {
+    public Page<Message> getByChat(UUID chatId, Pageable pageable, UUID callerId) {
         if (!chatRepository.existsById(chatId)) {
             throw new ChatNotFoundException(chatId);
+        }
+        if (!chatRepository.isParticipant(chatId, callerId)) {
+            throw new ParticipantNotAllowedException(callerId, chatId);
         }
         return messageRepository.findByChat_Id(chatId, pageable);
     }

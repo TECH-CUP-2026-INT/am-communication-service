@@ -13,6 +13,11 @@ public record SupportResult(SupportOutcome outcome, SupportLevel from, SupportLe
         return new SupportResult(SupportOutcome.FINALIZED, from, to, "Finalized at %s".formatted(to));
     }
 
+    /**
+     * A tier answered without advancing the ticket — a workflow signal only. It does not call
+     * {@code SupportTicket#resolve()} (the unrelated terminal ticket-status concept); the ticket
+     * stays open at {@code level}, waiting for the user to decide whether to escalate.
+     */
     public static SupportResult resolved(SupportLevel level) {
         return new SupportResult(SupportOutcome.RESOLVED, level, level, "Resolved at %s".formatted(level));
     }

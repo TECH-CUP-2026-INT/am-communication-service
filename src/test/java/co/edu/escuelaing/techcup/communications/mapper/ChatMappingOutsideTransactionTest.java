@@ -58,7 +58,7 @@ class ChatMappingOutsideTransactionTest {
 
     @Test
     void mapsASingleChatWithItsParticipants() {
-        ChatResponse response = chatMapper.toResponse(getChatUseCase.getById(chatId));
+        ChatResponse response = chatMapper.toResponse(getChatUseCase.getById(chatId, member));
 
         assertThat(response.id()).isEqualTo(chatId);
         assertThat(response.participants()).extracting(ParticipantResponse::userId)

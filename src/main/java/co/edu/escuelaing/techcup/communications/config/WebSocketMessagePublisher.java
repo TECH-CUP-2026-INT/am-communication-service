@@ -21,6 +21,7 @@ public class WebSocketMessagePublisher implements MessagePublisher {
 
     private final SimpMessagingTemplate messagingTemplate;
     private final MessageMapper messageMapper;
+    private final WebSocketMetrics metrics;
 
     @Override
     public void publishChatMessage(Message message) {
@@ -39,14 +40,19 @@ public class WebSocketMessagePublisher implements MessagePublisher {
      */
     private void send(String destination, MessageResponse payload) {
         if (!TransactionSynchronizationManager.isSynchronizationActive()) {
-            messagingTemplate.convertAndSend(destination, payload);
+            broadcast(destination, payload);
             return;
         }
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
-                messagingTemplate.convertAndSend(destination, payload);
+                broadcast(destination, payload);
             }
         });
+    }
+
+    private void broadcast(String destination, MessageResponse payload) {
+        messagingTemplate.convertAndSend(destination, payload);
+        metrics.recordBroadcast();
     }
 }

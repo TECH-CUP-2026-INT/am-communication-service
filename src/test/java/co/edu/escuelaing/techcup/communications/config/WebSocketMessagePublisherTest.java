@@ -34,6 +34,9 @@ class WebSocketMessagePublisherTest {
     @Mock
     private MessageMapper messageMapper;
 
+    @Mock
+    private WebSocketMetrics metrics;
+
     @InjectMocks
     private WebSocketMessagePublisher publisher;
 
@@ -69,6 +72,7 @@ class WebSocketMessagePublisherTest {
 
         verify(messagingTemplate).convertAndSend(
                 eq(WebSocketMessagePublisher.CHAT_TOPIC + message.getChatId()), any(Object.class));
+        verify(metrics).recordBroadcast();
     }
 
     @Test
@@ -90,11 +94,12 @@ class WebSocketMessagePublisherTest {
         TransactionSynchronizationManager.initSynchronization();
 
         publisher.publishChatMessage(message);
-        verifyNoInteractions(messagingTemplate);
+        verifyNoInteractions(messagingTemplate, metrics);
 
         commit();
         verify(messagingTemplate).convertAndSend(
                 eq(WebSocketMessagePublisher.CHAT_TOPIC + message.getChatId()), any(Object.class));
+        verify(metrics).recordBroadcast();
     }
 
     @Test
@@ -106,6 +111,6 @@ class WebSocketMessagePublisherTest {
         publisher.publishSupportMessage(UUID.randomUUID(), message);
 
         // The transaction rolls back: afterCommit never runs.
-        verifyNoInteractions(messagingTemplate);
+        verifyNoInteractions(messagingTemplate, metrics);
     }
 }

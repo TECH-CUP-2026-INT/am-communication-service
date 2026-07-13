@@ -1,6 +1,5 @@
 package co.edu.escuelaing.techcup.communications.service.client.rest;
 
-import co.edu.escuelaing.techcup.communications.config.IntegrationProperties;
 import co.edu.escuelaing.techcup.communications.exception.IntegrationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -58,5 +57,16 @@ class RestUserServiceClientTest {
                 .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR));
 
         assertThatThrownBy(() -> client.exists(userId)).isInstanceOf(IntegrationException.class);
+    }
+
+    @Test
+    void treatsEveryUserAsExistingWhenTheCheckIsDisabled() {
+        RestClient.Builder builder = RestClient.builder();
+        MockRestServiceServer disabledServer = MockRestServiceServer.bindTo(builder).build();
+        RestUserServiceClient disabledClient = new RestUserServiceClient(
+                builder, IntegrationTestProperties.pointingAt(BASE_URL, false));
+
+        assertThat(disabledClient.exists(userId)).isTrue();
+        disabledServer.verify();
     }
 }

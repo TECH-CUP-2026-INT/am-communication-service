@@ -1,5 +1,6 @@
 package co.edu.escuelaing.techcup.communications.controller;
 
+import co.edu.escuelaing.techcup.communications.config.AuthenticatedUser;
 import co.edu.escuelaing.techcup.communications.dto.ChatResponse;
 import co.edu.escuelaing.techcup.communications.dto.CreateChatRequest;
 import co.edu.escuelaing.techcup.communications.dto.MessageResponse;
@@ -16,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -49,23 +51,26 @@ public class ChatController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ChatResponse> getById(@PathVariable UUID id) {
-        return ResponseEntity.ok(chatMapper.toResponse(getChatUseCase.getById(id)));
+    public ResponseEntity<ChatResponse> getById(@PathVariable UUID id,
+                                                @AuthenticationPrincipal AuthenticatedUser caller) {
+        return ResponseEntity.ok(chatMapper.toResponse(getChatUseCase.getById(id, caller.userId())));
     }
 
     @GetMapping("/{id}/messages")
     public ResponseEntity<PageResponse<MessageResponse>> getMessages(
             @PathVariable UUID id,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") int size,
+            @AuthenticationPrincipal AuthenticatedUser caller) {
         PageRequest pageable = PageRequest.of(page, size, Sort.by("sentAt").ascending());
         PageResponse<MessageResponse> body = PageResponse.of(
-                getChatMessagesUseCase.getByChat(id, pageable).map(messageMapper::toResponse));
+                getChatMessagesUseCase.getByChat(id, pageable, caller.userId()).map(messageMapper::toResponse));
         return ResponseEntity.ok(body);
     }
 
     @PostMapping("/{id}/close")
-    public ResponseEntity<ChatResponse> close(@PathVariable UUID id) {
-        return ResponseEntity.ok(chatMapper.toResponse(closeChatUseCase.close(id)));
+    public ResponseEntity<ChatResponse> close(@PathVariable UUID id,
+                                              @AuthenticationPrincipal AuthenticatedUser caller) {
+        return ResponseEntity.ok(chatMapper.toResponse(closeChatUseCase.close(id, caller.userId())));
     }
 }

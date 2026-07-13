@@ -85,7 +85,7 @@ class SupportControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.currentLevel").value("CHATBOT"))
+                .andExpect(jsonPath("$.currentLevel").value("FAQ"))
                 .andExpect(jsonPath("$.requesterId").value(requester.toString()));
 
         ArgumentCaptor<CreateSupportTicketCommand> captor = ArgumentCaptor.forClass(CreateSupportTicketCommand.class);
@@ -116,20 +116,20 @@ class SupportControllerTest {
     @Test
     void escalateReturns200WithNewLevel() throws Exception {
         SupportTicket ticket = sampleTicket();
-        ticket.escalateTo(SupportLevel.AUTOMATIC);
-        when(escalateConversationUseCase.escalate(eq(ticket.getId()))).thenReturn(ticket);
+        ticket.escalateTo(SupportLevel.CHATBOT);
+        when(escalateConversationUseCase.escalate(eq(ticket.getId()), eq(requester))).thenReturn(ticket);
 
         mockMvc.perform(post("/support/tickets/{id}/escalate", ticket.getId())
                         .with(caller(requester, ParticipantRole.MODERATOR.name())))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.currentLevel").value("AUTOMATIC"))
+                .andExpect(jsonPath("$.currentLevel").value("CHATBOT"))
                 .andExpect(jsonPath("$.status").value("ESCALATED"));
     }
 
     @Test
     void escalateMissingTicketReturns404() throws Exception {
         UUID id = UUID.randomUUID();
-        when(escalateConversationUseCase.escalate(eq(id)))
+        when(escalateConversationUseCase.escalate(eq(id), eq(requester)))
                 .thenThrow(new SupportTicketNotFoundException(id));
 
         mockMvc.perform(post("/support/tickets/{id}/escalate", id)

@@ -17,19 +17,54 @@ spring:
 server:
   port: ${SERVER_PORT:8080}
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  metrics:
+    tags:
+      application: ${spring.application.name}
+  zipkin:
+    tracing:
+      endpoint: ${ZIPKIN_ENDPOINT:http://localhost:9411/api/v2/spans}
+  tracing:
+    sampling:
+      probability: ${TRACING_SAMPLING:1.0}
+
 security:
   jwt:
-    secret: ${JWT_SECRET:change-me-in-production-this-is-a-development-only-secret-key-hs256}
+    # Dev default matches cc-identity-service's own dev default, so local tokens validate
+    # without extra setup. In any real deployment both services must read the same JWT_SECRET.
+    secret: ${JWT_SECRET:super-secret-key-that-is-at-least-256-bits-long-for-hs256}
+    issuer: ${JWT_ISSUER:}
+    audience: ${JWT_AUDIENCE:}
+    clock-skew-seconds: ${JWT_CLOCK_SKEW_SECONDS:30}
+
+websocket:
+  allowed-origins: ${WS_ALLOWED_ORIGINS:http://localhost:*}
 
 integrations:
   user-service:
-    base-url: ${USER_SERVICE_URL:http://localhost:8081}
+    # cc-identity-service's confirmed dev port.
+    base-url: ${USER_SERVICE_URL:http://localhost:11711}
+    # cc-identity-service exposes no user-lookup endpoint yet; disable the check until it does.
+    existence-check-enabled: ${USER_EXISTENCE_CHECK:true}
   team-service:
     base-url: ${TEAM_SERVICE_URL:http://localhost:8082}
+    # cc-teams-service is still an empty skeleton with no endpoints; disable the check until it has one.
+    existence-check-enabled: ${TEAM_EXISTENCE_CHECK:true}
   notification-service:
     base-url: ${NOTIFICATION_SERVICE_URL:http://localhost:8083}
   audit-service:
     base-url: ${AUDIT_SERVICE_URL:http://localhost:8084}
+  groq:
+    base-url: ${GROQ_BASE_URL:https://api.groq.com/openai/v1}
+    # No default on purpose: the app must fail to start rather than run without a real key.
+    api-key: ${GROQ_API_KEY}
+    model: ${GROQ_MODEL:llama-3.3-70b-versatile}
+    # Blank falls back to GroqProperties' built-in default prompt.
+    system-prompt: ${GROQ_SYSTEM_PROMPT:}
 
 logging:
   level:

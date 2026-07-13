@@ -17,19 +17,23 @@ import co.edu.escuelaing.techcup.communications.service.GetChatUseCase;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 import java.util.UUID;
 
+import static co.edu.escuelaing.techcup.communications.controller.TestCallers.caller;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -68,6 +72,11 @@ class ChatControllerTest {
         return chat;
     }
 
+    @AfterEach
+    void clearSecurityContext() {
+        SecurityContextHolder.clearContext();
+    }
+
     @Test
     void createsChatReturns201WithLocation() throws Exception {
         Chat chat = sampleChat();
@@ -99,9 +108,9 @@ class ChatControllerTest {
     @Test
     void getByIdReturnsChat() throws Exception {
         Chat chat = sampleChat();
-        when(getChatUseCase.getById(chat.getId())).thenReturn(chat);
+        when(getChatUseCase.getById(chat.getId(), userA)).thenReturn(chat);
 
-        mockMvc.perform(get("/chats/{id}", chat.getId()))
+        mockMvc.perform(get("/chats/{id}", chat.getId()).with(caller(userA)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(chat.getId().toString()));
     }
@@ -109,9 +118,9 @@ class ChatControllerTest {
     @Test
     void getByIdReturns404WhenMissing() throws Exception {
         UUID id = UUID.randomUUID();
-        when(getChatUseCase.getById(id)).thenThrow(new ChatNotFoundException(id));
+        when(getChatUseCase.getById(id, userA)).thenThrow(new ChatNotFoundException(id));
 
-        mockMvc.perform(get("/chats/{id}", id))
+        mockMvc.perform(get("/chats/{id}", id).with(caller(userA)))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404));
     }
@@ -120,10 +129,10 @@ class ChatControllerTest {
     void getMessagesReturnsPagedResponse() throws Exception {
         Chat chat = sampleChat();
         Message message = chat.postMessage(userA, "hello");
-        when(getChatMessagesUseCase.getByChat(org.mockito.ArgumentMatchers.eq(chat.getId()), any()))
+        when(getChatMessagesUseCase.getByChat(eq(chat.getId()), any(), eq(userA)))
                 .thenReturn(new PageImpl<>(List.of(message), PageRequest.of(0, 20), 1));
 
-        mockMvc.perform(get("/chats/{id}/messages", chat.getId()))
+        mockMvc.perform(get("/chats/{id}/messages", chat.getId()).with(caller(userA)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalElements").value(1))
                 .andExpect(jsonPath("$.content[0].content").value("hello"))
@@ -134,9 +143,9 @@ class ChatControllerTest {
     void closeReturnsClosedChat() throws Exception {
         Chat chat = sampleChat();
         chat.close();
-        when(closeChatUseCase.close(chat.getId())).thenReturn(chat);
+        when(closeChatUseCase.close(chat.getId(), userA)).thenReturn(chat);
 
-        mockMvc.perform(post("/chats/{id}/close", chat.getId()))
+        mockMvc.perform(post("/chats/{id}/close", chat.getId()).with(caller(userA)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("CLOSED"));
     }
@@ -144,9 +153,9 @@ class ChatControllerTest {
     @Test
     void closeAlreadyClosedReturns409() throws Exception {
         UUID id = UUID.randomUUID();
-        when(closeChatUseCase.close(id)).thenThrow(new InvalidChatOperationException("already closed"));
+        when(closeChatUseCase.close(id, userA)).thenThrow(new InvalidChatOperationException("already closed"));
 
-        mockMvc.perform(post("/chats/{id}/close", id))
+        mockMvc.perform(post("/chats/{id}/close", id).with(caller(userA)))
                 .andExpect(status().isConflict());
     }
 }
