@@ -19,10 +19,16 @@
         </appender>
     </springProfile>
 
-    <root level="INFO">
-        <appender-ref ref="CONSOLE"/>
-        <springProfile name="elk">
+    <springProfile name="!elk">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+
+    <springProfile name="elk">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
             <appender-ref ref="LOGSTASH"/>
-        </springProfile>
-    </root>
+        </root>
+    </springProfile>
 </configuration>
