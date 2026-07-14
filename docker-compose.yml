@@ -1,0 +1,77 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${DB_NAME:-communications}
+      POSTGRES_USER: ${DB_USERNAME:-communications}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-communications}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-communications} -d ${DB_NAME:-communications}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-communications}
+      DB_USERNAME: ${DB_USERNAME:-communications}
+      DB_PASSWORD: ${DB_PASSWORD:-communications}
+      JPA_DDL_AUTO: ${JPA_DDL_AUTO:-update}
+      # The signing secret is shared with the authentication service and never defaulted.
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set}
+      USER_SERVICE_URL: ${USER_SERVICE_URL:-http://identity-service:11711}
+      TEAM_SERVICE_URL: ${TEAM_SERVICE_URL:-http://team-service:8082}
+      NOTIFICATION_SERVICE_URL: ${NOTIFICATION_SERVICE_URL:-http://notification-service:8083}
+      AUDIT_SERVICE_URL: ${AUDIT_SERVICE_URL:-http://audit-service:8084}
+      # cc-identity-service has no user-lookup endpoint yet and cc-teams-service is still an
+      # empty skeleton: both checks default off here so `docker compose up` isn't blocked on
+      # dependencies that don't exist yet. Flip to true once each service exposes its GET /{id}.
+      USER_EXISTENCE_CHECK: ${USER_EXISTENCE_CHECK:-false}
+      TEAM_EXISTENCE_CHECK: ${TEAM_EXISTENCE_CHECK:-false}
+      # The chatbot support tier's key, same never-defaulted pattern as JWT_SECRET.
+      GROQ_API_KEY: ${GROQ_API_KEY:?GROQ_API_KEY must be set}
+      GROQ_BASE_URL: ${GROQ_BASE_URL:-https://api.groq.com/openai/v1}
+      GROQ_MODEL: ${GROQ_MODEL:-llama-3.3-70b-versatile}
+      GROQ_SYSTEM_PROMPT: ${GROQ_SYSTEM_PROMPT:-}
+      WS_ALLOWED_ORIGINS: ${WS_ALLOWED_ORIGINS:-http://localhost:*}
+      ZIPKIN_ENDPOINT: http://zipkin:9411/api/v2/spans
+    ports:
+      - "${SERVER_PORT:-8080}:8080"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+    volumes:
+      - ./observability/grafana-datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml:ro
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+
+  zipkin:
+    image: openzipkin/zipkin:latest
+    ports:
+      - "9411:9411"
+
+volumes:
+  postgres-data:

@@ -1,0 +1,35 @@
+spring:
+  # Tests run against a real PostgreSQL. In CI the workflow provides a service
+  # container and sets SPRING_DATASOURCE_*; locally, `docker compose up postgres`
+  # provides the same database these defaults point at.
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/communications}
+    username: ${SPRING_DATASOURCE_USERNAME:communications}
+    password: ${SPRING_DATASOURCE_PASSWORD:communications}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    open-in-view: false
+
+security:
+  jwt:
+    secret: test-secret-key-for-hs256-signing-must-be-long-enough-256-bits
+
+management:
+  tracing:
+    sampling:
+      probability: 0.0
+
+integrations:
+  user-service:
+    base-url: http://localhost:0
+  team-service:
+    base-url: http://localhost:0
+  notification-service:
+    base-url: http://localhost:0
+  audit-service:
+    base-url: http://localhost:0
+  groq:
+    base-url: http://localhost:0
+    api-key: test-groq-api-key

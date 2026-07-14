@@ -1,0 +1,16 @@
+target/
+site/
+docs/
+.venv-docs/
+.git/
+.github/
+.idea/
+.settings/
+.mvn/
+mvnw
+mvnw.cmd
+mkdocs.yml
+*.iml
+.classpath
+.project
+.factorypath
