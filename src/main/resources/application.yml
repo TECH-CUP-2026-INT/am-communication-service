@@ -66,6 +66,16 @@ integrations:
     # Blank falls back to GroqProperties' built-in default prompt.
     system-prompt: ${GROQ_SYSTEM_PROMPT:}
 
+feign:
+  client:
+    config:
+      default:
+        connect-timeout: 3000
+        read-timeout: 5000
+      # Chat completions take longer than a plain CRUD call to identity/teams/notifications/audit.
+      groq-chatbot:
+        read-timeout: 30000
+
 logging:
   level:
     co.edu.escuelaing.techcup.communications: INFO
