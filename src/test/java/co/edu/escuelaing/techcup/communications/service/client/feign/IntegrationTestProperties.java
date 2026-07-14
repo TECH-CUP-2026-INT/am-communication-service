@@ -1,4 +1,4 @@
-package co.edu.escuelaing.techcup.communications.service.client.rest;
+package co.edu.escuelaing.techcup.communications.service.client.feign;
 
 import co.edu.escuelaing.techcup.communications.config.IntegrationProperties;
 

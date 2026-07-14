@@ -1,6 +1,8 @@
 name: Communications Service - CI (Push)
 
 on:
+  workflow_dispatch:
+
   push:
     branches:
       - main
@@ -19,8 +21,10 @@ jobs:
   build-test-analyze:
     name: Build, Test & Analyze
     runs-on: ubuntu-latest
+
     permissions:
       contents: read
+
     services:
       postgres:
         image: postgres:16
@@ -31,10 +35,10 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd pg_isready
-          --health-interval 5s
+          --health-cmd "pg_isready -U test -d communications_db"
+          --health-interval 10s
           --health-timeout 5s
-          --health-retries 10
+          --health-retries 5
 
     steps:
       - name: Checkout del código
@@ -54,13 +58,14 @@ jobs:
         with:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
+          restore-keys: |
+            ${{ runner.os }}-sonar
 
       - name: Dar permisos al Maven Wrapper
         run: chmod +x mvnw
 
       - name: Compilar
-        run: ./mvnw --batch-mode --no-transfer-progress compile
+        run: ./mvnw --batch-mode --no-transfer-progress clean compile
 
       - name: Ejecutar pruebas
         env:
@@ -77,7 +82,7 @@ jobs:
           path: target/surefire-reports/
           retention-days: 7
 
-      - name: Análisis estático con SonarQube
+      - name: Análisis con SonarCloud
         if: success()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -89,7 +94,7 @@ jobs:
             -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
             -Dsonar.token=${{ secrets.SONAR_TOKEN }}
 
-      - name: Empaquetar (jar)
+      - name: Empaquetar aplicación
         if: success()
         run: ./mvnw --batch-mode --no-transfer-progress package -DskipTests
 
@@ -101,15 +106,18 @@ jobs:
           path: target/*.jar
           retention-days: 14
 
-
   dockerize-publish:
     name: Build & Publish Docker Image
     needs: build-test-analyze
+
     runs-on: ubuntu-latest
+
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+
     permissions:
       contents: read
       packages: write
+
     steps:
       - name: Checkout del código
         uses: actions/checkout@v4
@@ -124,7 +132,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Calcular metadatos de la imagen
+      - name: Generar metadatos de la imagen
         id: meta
         uses: docker/metadata-action@v5
         with:
@@ -132,7 +140,7 @@ jobs:
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             type=ref,event=branch
-            type=sha,prefix=,format=short
+            type=sha
 
       - name: Construir y publicar imagen Docker
         uses: docker/build-push-action@v6
@@ -144,13 +152,19 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-
   deploy:
     name: Deploy a Azure App Service
+
     needs: dockerize-publish
-    runs-on: ubuntu-latest
+
     if: github.ref == 'refs/heads/main'
+
+    runs-on: ubuntu-latest
+
     environment: production
+
+    permissions:
+      contents: read
 
     steps:
       - name: Desplegar contenedor en Azure App Service
@@ -158,4 +172,4 @@ jobs:
         with:
           app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          images: ghcr.io/${{ env.IMAGE_NAME }}:main
+          images: ghcr.io/${{ env.IMAGE_NAME }}:latest

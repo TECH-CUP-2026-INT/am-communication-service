@@ -1,13 +1,11 @@
-package co.edu.escuelaing.techcup.communications.service.client.rest;
+package co.edu.escuelaing.techcup.communications.service.client.feign;
 
 import co.edu.escuelaing.techcup.communications.config.IntegrationProperties;
 import co.edu.escuelaing.techcup.communications.exception.IntegrationException;
 import co.edu.escuelaing.techcup.communications.service.client.UserServiceClient;
+import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestClient;
-import org.springframework.web.client.RestClientException;
 
 import java.util.UUID;
 
@@ -18,15 +16,15 @@ import java.util.UUID;
  */
 @Slf4j
 @Component
-public class RestUserServiceClient implements UserServiceClient {
+public class FeignUserServiceClient implements UserServiceClient {
 
     private static final String SERVICE = "user service";
 
-    private final RestClient restClient;
+    private final UserServiceFeignClient feignClient;
     private final boolean existenceCheckEnabled;
 
-    public RestUserServiceClient(RestClient.Builder builder, IntegrationProperties properties) {
-        this.restClient = builder.baseUrl(properties.userService().baseUrl()).build();
+    public FeignUserServiceClient(UserServiceFeignClient feignClient, IntegrationProperties properties) {
+        this.feignClient = feignClient;
         this.existenceCheckEnabled = properties.userService().existenceCheckEnabled();
         if (!existenceCheckEnabled) {
             log.warn("User existence checks are disabled: every userId is treated as existing");
@@ -39,11 +37,11 @@ public class RestUserServiceClient implements UserServiceClient {
             return true;
         }
         try {
-            restClient.get().uri("/users/{id}", userId).retrieve().toBodilessEntity();
+            feignClient.getUser(userId);
             return true;
-        } catch (HttpClientErrorException.NotFound ex) {
+        } catch (FeignException.NotFound ex) {
             return false;
-        } catch (RestClientException ex) {
+        } catch (FeignException ex) {
             throw new IntegrationException(SERVICE, ex);
         }
     }
