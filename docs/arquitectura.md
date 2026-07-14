@@ -59,3 +59,11 @@ communications/
 ## General flow
 
 ## UML and architecture diagrams
+
+### Class diagram
+
+Domain entities of the service (chat, messaging, moderation, support tickets and the FAQ
+knowledge base) with their invariant-enforcing methods — mutation happens through these
+methods, never through setters.
+
+![Class diagram](assets/diagrams/DiagramaDeClases.png)
