@@ -175,15 +175,21 @@ jobs:
           images: ghcr.io/${{ env.IMAGE_NAME }}:latest
 
       - name: Reiniciar App Service para forzar el pull de la imagen nueva
+        env:
+          PUBLISH_PROFILE: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
         run: |
           set -euo pipefail
-          profile='${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}'
-          username=$(echo "$profile" | grep -oP '(?<=userName=")[^"]*' | head -1)
-          password=$(echo "$profile" | grep -oP '(?<=userPWD=")[^"]*' | head -1)
-          # AZURE_WEBAPP_NAME a veces trae saltos de línea o el dominio completo pegado
-          # (p.ej. "miapp.azurewebsites.net"); sin normalizar eso, el host de Kudu queda
-          # mal formado y curl falla con "couldn't resolve host" (exit 6).
-          webapp_name=$(printf '%s' '${{ secrets.AZURE_WEBAPP_NAME }}' | tr -d '[:space:]' | sed 's/\.azurewebsites\.net$//')
+          # No armamos el host de Kudu a mano: desde que Azure empezó a asignar hostnames
+          # con sufijo aleatorio a los App Service Linux, "<AZURE_WEBAPP_NAME>.scm.azurewebsites.net"
+          # ya no siempre existe (curl fallaba con exit 6, "couldn't resolve host"). El publish
+          # profile trae el host real de Kudu en el perfil MSDeploy, así que lo leemos de ahí.
+          read -r username password scm_host <<< "$(python3 -c '
+          import os, xml.etree.ElementTree as ET
+          root = ET.fromstring(os.environ["PUBLISH_PROFILE"])
+          profile = next(p for p in root.findall("publishProfile") if p.get("publishMethod") == "MSDeploy")
+          host = profile.get("publishUrl").split(":")[0]
+          print(profile.get("userName"), profile.get("userPWD"), host)
+          ')"
           curl -sf -X POST \
             -u "${username}:${password}" \
-            "https://${webapp_name}.scm.azurewebsites.net/api/app/restart"
+            "https://${scm_host}/api/app/restart"
