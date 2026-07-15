@@ -179,10 +179,6 @@ jobs:
           PUBLISH_PROFILE: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
         run: |
           set -euo pipefail
-          # No armamos el host de Kudu a mano: desde que Azure empezó a asignar hostnames
-          # con sufijo aleatorio a los App Service Linux, "<AZURE_WEBAPP_NAME>.scm.azurewebsites.net"
-          # ya no siempre existe (curl fallaba con exit 6, "couldn't resolve host"). El publish
-          # profile trae el host real de Kudu en el perfil MSDeploy, así que lo leemos de ahí.
           read -r username password scm_host <<< "$(python3 -c '
           import os, xml.etree.ElementTree as ET
           root = ET.fromstring(os.environ["PUBLISH_PROFILE"])
