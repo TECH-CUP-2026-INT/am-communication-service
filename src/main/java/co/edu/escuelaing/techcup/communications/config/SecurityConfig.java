@@ -42,6 +42,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(requests -> requests
                         // The STOMP CONNECT frame is authenticated by WsAuthChannelInterceptor.
                         .requestMatchers("/ws/**").permitAll()
+                        // OpenAPI spec/UI must stay open for the API gateway's schema discovery.
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         // Prometheus scrapes without a JWT; the rest of Actuator stays behind auth.
                         .requestMatchers("/actuator/health", "/actuator/info", "/actuator/prometheus").permitAll()
                         .requestMatchers(HttpMethod.POST, "/reports/*/resolve")
