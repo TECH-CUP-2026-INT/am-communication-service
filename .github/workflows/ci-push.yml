@@ -173,3 +173,13 @@ jobs:
           app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           images: ghcr.io/${{ env.IMAGE_NAME }}:latest
+
+      - name: Reiniciar App Service para forzar el pull de la imagen nueva
+        run: |
+          set -euo pipefail
+          profile='${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}'
+          username=$(echo "$profile" | grep -oP '(?<=userName=")[^"]*' | head -1)
+          password=$(echo "$profile" | grep -oP '(?<=userPWD=")[^"]*' | head -1)
+          curl -sf -X POST \
+            -u "${username}:${password}" \
+            "https://${{ secrets.AZURE_WEBAPP_NAME }}.scm.azurewebsites.net/api/app/restart"
