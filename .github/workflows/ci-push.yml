@@ -180,6 +180,10 @@ jobs:
           profile='${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}'
           username=$(echo "$profile" | grep -oP '(?<=userName=")[^"]*' | head -1)
           password=$(echo "$profile" | grep -oP '(?<=userPWD=")[^"]*' | head -1)
+          # AZURE_WEBAPP_NAME a veces trae saltos de línea o el dominio completo pegado
+          # (p.ej. "miapp.azurewebsites.net"); sin normalizar eso, el host de Kudu queda
+          # mal formado y curl falla con "couldn't resolve host" (exit 6).
+          webapp_name=$(printf '%s' '${{ secrets.AZURE_WEBAPP_NAME }}' | tr -d '[:space:]' | sed 's/\.azurewebsites\.net$//')
           curl -sf -X POST \
             -u "${username}:${password}" \
-            "https://${{ secrets.AZURE_WEBAPP_NAME }}.scm.azurewebsites.net/api/app/restart"
+            "https://${webapp_name}.scm.azurewebsites.net/api/app/restart"
