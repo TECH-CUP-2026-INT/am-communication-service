@@ -26,8 +26,12 @@ public class WsAuthChannelInterceptor implements ChannelInterceptor {
     private final SubscriptionAuthorizer subscriptionAuthorizer;
     private final WebSocketMetrics metrics;
 
+    // @Nullable mirrors Spring's ChannelInterceptor.preSend contract (returning null drops the
+    // message). Spring declares that package @NonNullApi, and its interop with SonarQube's nullability
+    // analysis keeps flagging the override despite the matching annotation, so S2638 is suppressed.
     @Override
     @Nullable
+    @SuppressWarnings("java:S2638")
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
         if (accessor == null || accessor.getCommand() == null) {
