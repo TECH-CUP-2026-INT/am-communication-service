@@ -1,5 +1,6 @@
 package co.edu.escuelaing.techcup.communications.domain.service.support;
 
+import co.edu.escuelaing.techcup.communications.domain.exception.IntegrationException;
 import co.edu.escuelaing.techcup.communications.domain.model.Chat;
 import co.edu.escuelaing.techcup.communications.domain.model.SupportTicket;
 import co.edu.escuelaing.techcup.communications.domain.model.enums.ChatType;
@@ -15,8 +16,10 @@ import org.mockito.Mockito;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -85,6 +88,20 @@ class SupportChainOrchestratorTest {
         assertThat(ticket.getCurrentLevel()).isEqualTo(SupportLevel.FAQ);
         verify(audit).record(eq("SUPPORT_TRANSITION"), eq(ticket.getId()), any());
         verify(notifications).notify(eq(ticket.getRequesterId()), any(), any());
+    }
+
+    @Test
+    void runAutomatedStageSurvivesANotificationFailure() {
+        SupportTicket ticket = newTicket();
+        doThrow(new IntegrationException("notification service", new RuntimeException("404")))
+                .when(notifications).notify(any(), any(), any());
+
+        assertThatCode(() -> {
+            SupportResult result = orchestrator.runAutomatedStage(ticket);
+            assertThat(result.outcome()).isEqualTo(SupportOutcome.RESOLVED);
+        }).doesNotThrowAnyException();
+
+        verify(audit).record(eq("SUPPORT_TRANSITION"), eq(ticket.getId()), any());
     }
 
     @Test
