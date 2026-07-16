@@ -15,7 +15,7 @@ spring:
     open-in-view: false
 
 server:
-  port: ${SERVER_PORT:8080}
+  port: ${SERVER_PORT:5628}
 
 management:
   endpoints:
