@@ -4,7 +4,7 @@
 
 **Astro Merge** is a **sports tournament** management platform built with a
 microservices architecture. Within that platform, the **Communications Service**
-(`am-comunication-service`) concentrates all messaging between the actors of the system:
+(`am-communication-service`) concentrates all messaging between the actors of the system:
 players, organizers, and the support system.
 
 The service combines a **WebSocket (STOMP)** channel for real-time client↔server

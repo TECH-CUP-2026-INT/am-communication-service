@@ -2,11 +2,11 @@
 site_name: Astro Merge — Communications Service
 site_description: Technical documentation of the messaging microservice of the Astro Merge system.
 site_author: TECH-CUP 2026 INT Team
-site_url: https://tech-cup-2026-int.github.io/am-comunication-service/
+site_url: https://tech-cup-2026-int.github.io/am-communication-service/
 
 # Repository
-repo_name: TECH-CUP-2026-INT/am-comunication-service
-repo_url: https://github.com/TECH-CUP-2026-INT/am-comunication-service
+repo_name: TECH-CUP-2026-INT/am-communication-service
+repo_url: https://github.com/TECH-CUP-2026-INT/am-communication-service
 edit_uri: edit/develop/docs/
 
 # Copyright
@@ -50,6 +50,8 @@ theme:
         name: Switch to light mode
   icon:
     repo: fontawesome/brands/github
+  logo: assets/img/logo.png
+  favicon: assets/img/logo.png
   font:
     text: Roboto
     code: Roboto Mono

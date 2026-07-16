@@ -38,9 +38,34 @@ repository) and exposes **two clearly differentiated entry channels**:
 
 ### Inter-service communication: API / events
 
+Communication with sibling microservices — `cc-identity-service`, `cc-teams-service`,
+`am-notification-service`, and the audit service — happens exclusively over **REST via
+Spring Cloud OpenFeign** declarative clients, never over the WebSocket channel. Each client has
+its own base URL (`integrations.*.base-url`, see [Configuration](configuracion.md)) and its own
+Feign timeout profile (`feign.client.config`), since a chat-completion call to the Groq-backed
+chatbot takes noticeably longer than a plain existence check against identity/teams.
+
+Existence checks (user/team) can be toggled independently per environment
+(`USER_EXISTENCE_CHECK` / `TEAM_EXISTENCE_CHECK`), so this service is never hard-blocked by a
+sibling service that hasn't shipped its endpoint yet. The full contract — current gaps, JWT
+claim compatibility, and what each team still needs to expose — is tracked in
+[Service Integration](integracion-servicios.md).
 
 ## Design patterns
 
+- **Layered architecture** (`controller` → `service` → `repository`): each layer only talks to
+  the one directly below it; controllers never touch repositories directly.
+- **DTO + Mapper** (MapStruct): entities never cross the API boundary directly. Mappers in
+  `mapper/` translate between JPA entities and the DTOs exposed by REST/WebSocket controllers,
+  keeping persistence details out of the public contract.
+- **Repository pattern** (Spring Data JPA): data access is expressed through repository
+  interfaces in `repository/`, with query derivation/JPQL instead of hand-written SQL.
+- **Centralized exception handling**: cross-cutting error handling lives in `exception/`
+  (`@RestControllerAdvice`-style translation of domain/validation errors into consistent HTTP
+  responses), instead of try/catch blocks scattered across controllers.
+- **Rich domain entities**: entities enforce their own invariants through behavior methods
+  (see the [class diagram](#class-diagram)) rather than exposing plain setters, so state changes
+  stay consistent with the domain rules.
 
 ## Components
 
@@ -57,6 +82,22 @@ communications/
 ```
 
 ## General flow
+
+End-to-end path of a direct/group message:
+
+1. The client opens a **STOMP over WebSocket** connection carrying its JWT.
+2. A JWT filter validates the token and resolves the caller's identity (see
+   [Service Integration](integracion-servicios.md#jwt-compatibility) for the exact claim
+   resolution rules).
+3. The client subscribes to the conversation's *topic* (`/topic/conversacion/{id}`).
+4. The corresponding **service** validates the request (e.g. team membership via
+   `cc-teams-service` when `TEAM_EXISTENCE_CHECK` is enabled) and persists the message through
+   the **repository** layer.
+5. The message is broadcast in real time to every client subscribed to that *topic*.
+6. The service asynchronously calls `am-notification-service` (Feign) to trigger a notification,
+   and reports the event to the audit service.
+7. Moderation follows the same pattern for reported messages: a **Report** is created, reviewed
+   by a moderator, and its resolution is persisted and reported to auditing.
 
 ## UML and architecture diagrams
 

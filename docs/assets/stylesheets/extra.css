@@ -35,3 +35,129 @@
   border-color: var(--md-primary-fg-color--light);
   color: #ffffff;
 }
+
+/* ---------------------------------------------------------------------- */
+/* Pestañas y navegación: subrayado dorado en la sección/tab activa       */
+/* ---------------------------------------------------------------------- */
+.md-tabs__link--active,
+.md-tabs__link:hover {
+  color: var(--md-accent-fg-color) !important;
+}
+
+.md-nav__link--active,
+.md-nav__link--active:hover {
+  color: var(--md-accent-fg-color);
+  font-weight: 700;
+}
+
+.md-nav__item .md-nav__link--active {
+  border-left: 2px solid var(--md-accent-fg-color);
+  padding-left: 0.6em;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Admonitions: notas/tips/ejemplos en la paleta morado-dorado            */
+/* (warning/danger conservan su color semántico por accesibilidad)        */
+/* ---------------------------------------------------------------------- */
+.md-typeset .admonition.note,
+.md-typeset details.note,
+.md-typeset .admonition.info,
+.md-typeset details.info,
+.md-typeset .admonition.abstract,
+.md-typeset details.abstract {
+  border-color: var(--md-primary-fg-color);
+}
+.md-typeset .note > .admonition-title,
+.md-typeset .note > summary,
+.md-typeset .info > .admonition-title,
+.md-typeset .info > summary,
+.md-typeset .abstract > .admonition-title,
+.md-typeset .abstract > summary {
+  background-color: color-mix(in srgb, var(--md-primary-fg-color) 12%, transparent);
+}
+.md-typeset .note > .admonition-title::before,
+.md-typeset .note > summary::before,
+.md-typeset .info > .admonition-title::before,
+.md-typeset .info > summary::before,
+.md-typeset .abstract > .admonition-title::before,
+.md-typeset .abstract > summary::before {
+  background-color: var(--md-primary-fg-color);
+}
+
+.md-typeset .admonition.tip,
+.md-typeset details.tip,
+.md-typeset .admonition.success,
+.md-typeset details.success {
+  border-color: var(--md-accent-fg-color);
+}
+.md-typeset .tip > .admonition-title,
+.md-typeset .tip > summary,
+.md-typeset .success > .admonition-title,
+.md-typeset .success > summary {
+  background-color: var(--md-accent-fg-color--transparent);
+}
+.md-typeset .tip > .admonition-title::before,
+.md-typeset .tip > summary::before,
+.md-typeset .success > .admonition-title::before,
+.md-typeset .success > summary::before {
+  background-color: var(--md-accent-fg-color);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Tablas: encabezado morado, hover sutil dorado                          */
+/* ---------------------------------------------------------------------- */
+.md-typeset table:not([class]) th {
+  background-color: var(--md-primary-fg-color);
+  color: #ffffff;
+}
+.md-typeset table:not([class]) tr:hover {
+  background-color: var(--md-accent-fg-color--transparent);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Bloques de código: acento dorado a la izquierda                        */
+/* ---------------------------------------------------------------------- */
+.md-typeset pre {
+  border-left: 3px solid var(--md-accent-fg-color);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Logo de marca: recorte redondeado sobre la barra morada                */
+/* ---------------------------------------------------------------------- */
+.md-header__button.md-logo img,
+.md-header__button.md-logo svg,
+.md-nav__title .md-logo img,
+.md-nav__title .md-logo svg {
+  border-radius: 20%;
+  box-shadow: 0 0 0 1px var(--md-accent-fg-color--transparent);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Hero banner opcional para portadas (usar con <div class="am-hero">)    */
+/* ---------------------------------------------------------------------- */
+.am-hero {
+  margin: 0 0 1.5em;
+  padding: 2.2em 2em;
+  border-radius: 0.5em;
+  background: linear-gradient(135deg, var(--md-primary-fg-color--light), var(--md-primary-fg-color--dark));
+  color: #ffffff;
+  box-shadow: 0 4px 18px rgba(74, 20, 140, 0.35);
+}
+.am-hero h1 {
+  margin-top: 0;
+  color: #ffffff;
+}
+.am-hero .am-hero__subtitle {
+  color: var(--md-accent-fg-color);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  font-size: 0.8em;
+  margin-bottom: 0.4em;
+}
+.am-hero a {
+  color: var(--md-accent-fg-color);
+}
+[data-md-color-scheme="default"] .am-hero {
+  color: #f5eefc;
+}

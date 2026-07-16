@@ -1,6 +1,6 @@
 # Service Integration
 
-This page documents the actual contract between `am-comunication-service` and two sibling
+This page documents the actual contract between `am-communication-service` and two sibling
 microservices — `cc-identity-service` and `cc-teams-service` — as verified against their
 source on 2026-07-12, and the gaps that still block full interoperability.
 
