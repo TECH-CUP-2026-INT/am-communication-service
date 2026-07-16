@@ -51,7 +51,8 @@ class JwtServiceTest {
     void rejectsATokenWithTheWrongIssuer() {
         JwtService strict = new JwtService(new JwtProperties(JwtTestTokens.SECRET, "auth-service", null, 0));
 
-        assertThatThrownBy(() -> strict.parse(tokenWith("someone-else", "communications")))
+        String token = tokenWith("someone-else", "communications");
+        assertThatThrownBy(() -> strict.parse(token))
                 .isInstanceOf(InvalidTokenException.class);
     }
 
@@ -59,7 +60,8 @@ class JwtServiceTest {
     void rejectsATokenWithTheWrongAudience() {
         JwtService strict = new JwtService(new JwtProperties(JwtTestTokens.SECRET, null, "communications", 0));
 
-        assertThatThrownBy(() -> strict.parse(tokenWith("auth-service", "someone-else")))
+        String token = tokenWith("auth-service", "someone-else");
+        assertThatThrownBy(() -> strict.parse(token))
                 .isInstanceOf(InvalidTokenException.class);
     }
 
@@ -99,7 +101,8 @@ class JwtServiceTest {
 
     @Test
     void rejectsAnExpiredToken() {
-        assertThatThrownBy(() -> jwtService.parse(JwtTestTokens.expired(userId)))
+        String token = JwtTestTokens.expired(userId);
+        assertThatThrownBy(() -> jwtService.parse(token))
                 .isInstanceOf(InvalidTokenException.class);
     }
 

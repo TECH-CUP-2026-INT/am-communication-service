@@ -45,7 +45,7 @@ class GetChatMessagesServiceTest {
         Page<Message> page = new PageImpl<>(List.of());
         when(chatRepository.existsById(chatId)).thenReturn(true);
         when(chatRepository.isParticipant(chatId, caller)).thenReturn(true);
-        when(messageRepository.findByChat_Id(chatId, pageable)).thenReturn(page);
+        when(messageRepository.findByChatId(chatId, pageable)).thenReturn(page);
 
         assertThat(service.getByChat(chatId, pageable, caller)).isSameAs(page);
     }
@@ -56,7 +56,7 @@ class GetChatMessagesServiceTest {
 
         assertThatThrownBy(() -> service.getByChat(chatId, pageable, caller))
                 .isInstanceOf(ChatNotFoundException.class);
-        verify(messageRepository, never()).findByChat_Id(chatId, pageable);
+        verify(messageRepository, never()).findByChatId(chatId, pageable);
     }
 
     @Test
@@ -66,6 +66,6 @@ class GetChatMessagesServiceTest {
 
         assertThatThrownBy(() -> service.getByChat(chatId, pageable, caller))
                 .isInstanceOf(ParticipantNotAllowedException.class);
-        verify(messageRepository, never()).findByChat_Id(chatId, pageable);
+        verify(messageRepository, never()).findByChatId(chatId, pageable);
     }
 }

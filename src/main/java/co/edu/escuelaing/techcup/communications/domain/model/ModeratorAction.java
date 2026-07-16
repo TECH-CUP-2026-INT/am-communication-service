@@ -37,7 +37,7 @@ public class ModeratorAction {
         this.createdAt = Instant.now();
     }
 
-    public static ModeratorAction record(UUID moderatorId, String targetType, UUID targetId,
+    public static ModeratorAction of(UUID moderatorId, String targetType, UUID targetId,
                                          ModeratorActionType actionType, String reason) {
         return new ModeratorAction(moderatorId, targetType, targetId, actionType, reason);
     }

@@ -91,8 +91,9 @@ class ResolveReportServiceTest {
         UUID id = UUID.randomUUID();
         when(reportedMessageRepository.findById(id)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.resolve(new ResolveReportCommand(
-                id, moderator, ReportStatus.DISMISSED, "x", ModeratorActionType.WARN)))
+        ResolveReportCommand command = new ResolveReportCommand(
+                id, moderator, ReportStatus.DISMISSED, "x", ModeratorActionType.WARN);
+        assertThatThrownBy(() -> service.resolve(command))
                 .isInstanceOf(ReportedMessageNotFoundException.class);
         verify(moderatorActionRepository, never()).save(any());
     }
@@ -103,8 +104,9 @@ class ResolveReportServiceTest {
         report.resolve(ReportStatus.REVIEWED, "done");
         when(reportedMessageRepository.findById(report.getId())).thenReturn(Optional.of(report));
 
-        assertThatThrownBy(() -> service.resolve(new ResolveReportCommand(
-                report.getId(), moderator, ReportStatus.DISMISSED, "again", ModeratorActionType.WARN)))
+        ResolveReportCommand command = new ResolveReportCommand(
+                report.getId(), moderator, ReportStatus.DISMISSED, "again", ModeratorActionType.WARN);
+        assertThatThrownBy(() -> service.resolve(command))
                 .isInstanceOf(InvalidChatOperationException.class);
         verify(moderatorActionRepository, never()).save(any());
     }

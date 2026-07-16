@@ -31,6 +31,11 @@ public class SecurityConfig {
      */
     static final String IDENTITY_ADMIN_ROLE = "ADMIN";
 
+    // CSRF is intentionally disabled: this is a stateless resource server authenticated via the
+    // Authorization: Bearer header (no session cookies). CSRF attacks rely on the browser attaching
+    // ambient credentials automatically, which cannot happen for a bearer-token API, so the
+    // protection adds no value here. See Spring Security docs on CSRF and stateless APIs.
+    @SuppressWarnings("java:S4502")
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtService jwtService,
                                                    SecurityErrorResponder errorResponder,

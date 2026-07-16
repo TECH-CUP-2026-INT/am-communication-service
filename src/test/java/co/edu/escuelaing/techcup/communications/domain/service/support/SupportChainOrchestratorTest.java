@@ -11,7 +11,6 @@ import co.edu.escuelaing.techcup.communications.domain.service.ports.out.AuditSe
 import co.edu.escuelaing.techcup.communications.domain.service.ports.out.NotificationServiceClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import java.util.UUID;
 
@@ -20,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -68,8 +68,8 @@ class SupportChainOrchestratorTest {
         chatbot.setNext(moderator);
         moderator.setNext(organizer);
 
-        audit = Mockito.mock(AuditServiceClient.class);
-        notifications = Mockito.mock(NotificationServiceClient.class);
+        audit = mock(AuditServiceClient.class);
+        notifications = mock(NotificationServiceClient.class);
         orchestrator = new SupportChainOrchestrator(faq, audit, notifications);
     }
 
@@ -86,7 +86,7 @@ class SupportChainOrchestratorTest {
 
         assertThat(result.outcome()).isEqualTo(SupportOutcome.RESOLVED);
         assertThat(ticket.getCurrentLevel()).isEqualTo(SupportLevel.FAQ);
-        verify(audit).record(eq("SUPPORT_TRANSITION"), eq(ticket.getId()), any());
+        verify(audit).recordEvent(eq("SUPPORT_TRANSITION"), eq(ticket.getId()), any());
         verify(notifications).notify(eq(ticket.getRequesterId()), any(), any());
     }
 
@@ -101,7 +101,7 @@ class SupportChainOrchestratorTest {
             assertThat(result.outcome()).isEqualTo(SupportOutcome.RESOLVED);
         }).doesNotThrowAnyException();
 
-        verify(audit).record(eq("SUPPORT_TRANSITION"), eq(ticket.getId()), any());
+        verify(audit).recordEvent(eq("SUPPORT_TRANSITION"), eq(ticket.getId()), any());
     }
 
     @Test
@@ -115,7 +115,7 @@ class SupportChainOrchestratorTest {
         assertThat(result.from()).isEqualTo(SupportLevel.CHATBOT);
         assertThat(result.to()).isEqualTo(SupportLevel.MODERATOR);
         // Two real transitions in one call: FAQ->CHATBOT (forced) then CHATBOT->MODERATOR (automated).
-        verify(audit, times(2)).record(eq("SUPPORT_TRANSITION"), eq(ticket.getId()), any());
+        verify(audit, times(2)).recordEvent(eq("SUPPORT_TRANSITION"), eq(ticket.getId()), any());
     }
 
     @Test
@@ -127,7 +127,7 @@ class SupportChainOrchestratorTest {
 
         assertThat(ticket.getCurrentLevel()).isEqualTo(SupportLevel.ORGANIZER);
         assertThat(result.outcome()).isEqualTo(SupportOutcome.ESCALATED);
-        verify(audit, times(1)).record(eq("SUPPORT_TRANSITION"), eq(ticket.getId()), any());
+        verify(audit, times(1)).recordEvent(eq("SUPPORT_TRANSITION"), eq(ticket.getId()), any());
     }
 
     @Test
@@ -140,7 +140,7 @@ class SupportChainOrchestratorTest {
         assertThat(ticket.getCurrentLevel()).isEqualTo(SupportLevel.PENDING);
         assertThat(ticket.getStatus()).isEqualTo(SupportTicketStatus.PENDING);
         assertThat(result.outcome()).isEqualTo(SupportOutcome.FINALIZED);
-        verify(audit, times(1)).record(eq("SUPPORT_TRANSITION"), eq(ticket.getId()), any());
+        verify(audit, times(1)).recordEvent(eq("SUPPORT_TRANSITION"), eq(ticket.getId()), any());
     }
 
     @Test
@@ -153,6 +153,6 @@ class SupportChainOrchestratorTest {
         assertThat(ticket.getCurrentLevel()).isEqualTo(SupportLevel.PENDING);
         assertThat(ticket.getStatus()).isEqualTo(SupportTicketStatus.PENDING);
         assertThat(result.outcome()).isEqualTo(SupportOutcome.PENDING);
-        verify(audit, times(1)).record(eq("SUPPORT_TRANSITION"), eq(ticket.getId()), any());
+        verify(audit, times(1)).recordEvent(eq("SUPPORT_TRANSITION"), eq(ticket.getId()), any());
     }
 }

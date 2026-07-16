@@ -41,6 +41,9 @@ public class ReportedMessage {
         return new ReportedMessage(message, reporterId, reason);
     }
 
+    // Reconstruction from a persisted row: every column maps to one argument, so the parameter
+    // count mirrors the stored state and a builder would only add indirection here.
+    @SuppressWarnings("java:S107")
     public static ReportedMessage fromPersistence(UUID id, Message message, UUID reporterId, String reason,
                                                   ReportStatus status, String resolution,
                                                   Instant createdAt, Instant reviewedAt) {

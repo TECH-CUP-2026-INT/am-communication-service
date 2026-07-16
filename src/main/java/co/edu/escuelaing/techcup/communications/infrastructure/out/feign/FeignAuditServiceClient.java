@@ -20,7 +20,7 @@ public class FeignAuditServiceClient implements AuditServiceClient {
     }
 
     @Override
-    public void record(String eventType, UUID entityId, String detail) {
+    public void recordEvent(String eventType, UUID entityId, String detail) {
         try {
             feignClient.recordEvent(new AuditPayload(eventType, entityId, detail, Instant.now()));
         } catch (FeignException ex) {

@@ -30,6 +30,6 @@ public class GetChatMessagesService implements GetChatMessagesUseCase {
         if (!chatRepository.isParticipant(chatId, callerId)) {
             throw new ParticipantNotAllowedException(callerId, chatId);
         }
-        return messageRepository.findByChat_Id(chatId, pageable);
+        return messageRepository.findByChatId(chatId, pageable);
     }
 }

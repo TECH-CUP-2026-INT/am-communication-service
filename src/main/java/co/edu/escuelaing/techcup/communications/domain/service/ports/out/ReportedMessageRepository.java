@@ -12,5 +12,5 @@ public interface ReportedMessageRepository {
 
     ReportedMessage save(ReportedMessage report);
 
-    boolean existsByMessage_IdAndReporterId(UUID messageId, UUID reporterId);
+    boolean existsByMessageIdAndReporterId(UUID messageId, UUID reporterId);
 }

@@ -32,7 +32,7 @@ public class ResolveReportService implements ResolveReportUseCase {
         // Domain enforces PENDING -> terminal transition.
         report.resolve(command.resolutionStatus(), command.note());
 
-        moderatorActionRepository.save(ModeratorAction.record(
+        moderatorActionRepository.save(ModeratorAction.of(
                 command.moderatorId(),
                 TARGET_TYPE_MESSAGE,
                 report.getMessageId(),

@@ -69,7 +69,8 @@ class SendMessageServiceTest {
         UUID chatId = UUID.randomUUID();
         when(chatRepository.findById(chatId)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.send(new SendMessageCommand(chatId, sender, "hi")))
+        SendMessageCommand command = new SendMessageCommand(chatId, sender, "hi");
+        assertThatThrownBy(() -> service.send(command))
                 .isInstanceOf(ChatNotFoundException.class);
         verify(messageRepository, never()).save(any());
     }
@@ -80,7 +81,8 @@ class SendMessageServiceTest {
         chat.close();
         when(chatRepository.findById(chat.getId())).thenReturn(Optional.of(chat));
 
-        assertThatThrownBy(() -> service.send(new SendMessageCommand(chat.getId(), sender, "hi")))
+        SendMessageCommand command = new SendMessageCommand(chat.getId(), sender, "hi");
+        assertThatThrownBy(() -> service.send(command))
                 .isInstanceOf(ChatClosedException.class);
         verify(messageRepository, never()).save(any());
     }
@@ -90,7 +92,8 @@ class SendMessageServiceTest {
         Chat chat = Chat.create(ChatType.DIRECT, null);
         when(chatRepository.findById(chat.getId())).thenReturn(Optional.of(chat));
 
-        assertThatThrownBy(() -> service.send(new SendMessageCommand(chat.getId(), sender, "hi")))
+        SendMessageCommand command = new SendMessageCommand(chat.getId(), sender, "hi");
+        assertThatThrownBy(() -> service.send(command))
                 .isInstanceOf(ParticipantNotAllowedException.class);
         verify(messageRepository, never()).save(any());
     }

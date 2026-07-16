@@ -43,7 +43,7 @@ public class SupportChainOrchestrator {
 
     private SupportResult recordAndNotify(SupportTicket ticket, SupportLevel from, SupportResult result) {
         String detail = "%s: %s -> %s".formatted(result.outcome(), from, ticket.getCurrentLevel());
-        auditServiceClient.record(TRANSITION_EVENT, ticket.getId(), detail);
+        auditServiceClient.recordEvent(TRANSITION_EVENT, ticket.getId(), detail);
         // Best-effort: una falla notificando al usuario no debe tumbar la transición del
         // ticket, que ya quedó aplicada y auditada en las líneas de arriba.
         try {

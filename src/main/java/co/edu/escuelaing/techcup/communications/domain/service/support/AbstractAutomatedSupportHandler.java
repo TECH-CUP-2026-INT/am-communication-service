@@ -29,7 +29,7 @@ public abstract class AbstractAutomatedSupportHandler extends AbstractSupportHan
 
     /** @return up to the last {@code limit} messages of the ticket's chat, oldest first. */
     protected List<Message> recentMessages(SupportTicket ticket, int limit) {
-        List<Message> all = messageRepository.findByChat_IdOrderBySentAtAsc(ticket.getChatId());
+        List<Message> all = messageRepository.findByChatIdOrderBySentAtAsc(ticket.getChatId());
         int from = Math.max(0, all.size() - limit);
         return all.subList(from, all.size());
     }

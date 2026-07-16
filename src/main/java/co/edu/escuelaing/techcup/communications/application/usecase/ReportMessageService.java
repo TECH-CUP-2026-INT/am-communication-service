@@ -30,7 +30,7 @@ public class ReportMessageService implements ReportMessageUseCase {
         if (message.getStatus() == MessageStatus.DELETED) {
             throw new InvalidChatOperationException("No se puede reportar un mensaje eliminado: " + command.messageId());
         }
-        if (reportedMessageRepository.existsByMessage_IdAndReporterId(command.messageId(), command.reporterId())) {
+        if (reportedMessageRepository.existsByMessageIdAndReporterId(command.messageId(), command.reporterId())) {
             throw new MessageAlreadyReportedException(command.messageId());
         }
 

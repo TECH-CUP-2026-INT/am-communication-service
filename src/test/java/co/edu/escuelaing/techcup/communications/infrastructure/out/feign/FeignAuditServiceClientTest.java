@@ -27,7 +27,7 @@ class FeignAuditServiceClientTest {
     void postsTheAuditEventWithItsTimestamp() {
         FeignAuditServiceClient client = new FeignAuditServiceClient(feignClient);
 
-        assertThatCode(() -> client.record("SUPPORT_TRANSITION", ticketId, "ESCALATED: CHATBOT -> AUTOMATIC"))
+        assertThatCode(() -> client.recordEvent("SUPPORT_TRANSITION", ticketId, "ESCALATED: CHATBOT -> AUTOMATIC"))
                 .doesNotThrowAnyException();
 
         ArgumentCaptor<AuditPayload> captor = ArgumentCaptor.forClass(AuditPayload.class);
@@ -43,7 +43,7 @@ class FeignAuditServiceClientTest {
         doThrow(FeignExceptions.withStatus(500)).when(feignClient).recordEvent(org.mockito.ArgumentMatchers.any());
         FeignAuditServiceClient client = new FeignAuditServiceClient(feignClient);
 
-        assertThatThrownBy(() -> client.record("SUPPORT_TRANSITION", ticketId, "detail"))
+        assertThatThrownBy(() -> client.recordEvent("SUPPORT_TRANSITION", ticketId, "detail"))
                 .isInstanceOf(IntegrationException.class);
     }
 }

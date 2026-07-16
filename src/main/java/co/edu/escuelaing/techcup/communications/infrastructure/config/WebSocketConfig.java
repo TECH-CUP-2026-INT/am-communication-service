@@ -29,7 +29,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        // Simple in-memory broker; destinations: /topic/chat/{chatId}, /topic/support/{ticketId}
+        // Simple in-memory broker. Chat destinations are keyed by chat id and support destinations by ticket id.
         registry.enableSimpleBroker("/topic");
         registry.setApplicationDestinationPrefixes("/app");
     }

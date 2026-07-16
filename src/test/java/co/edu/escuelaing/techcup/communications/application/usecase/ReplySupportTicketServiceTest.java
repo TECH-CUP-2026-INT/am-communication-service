@@ -85,7 +85,8 @@ class ReplySupportTicketServiceTest {
         UUID id = UUID.randomUUID();
         when(supportTicketRepository.findById(id)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.reply(new ReplySupportTicketCommand(id, requester, "hi")))
+        ReplySupportTicketCommand command = new ReplySupportTicketCommand(id, requester, "hi");
+        assertThatThrownBy(() -> service.reply(command))
                 .isInstanceOf(SupportTicketNotFoundException.class);
         verify(messageRepository, never()).save(any());
     }

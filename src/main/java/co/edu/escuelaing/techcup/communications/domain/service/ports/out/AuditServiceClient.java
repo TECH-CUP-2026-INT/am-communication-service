@@ -5,5 +5,5 @@ import java.util.UUID;
 /** Outbound port to the Auditing microservice. */
 public interface AuditServiceClient {
 
-    void record(String eventType, UUID entityId, String detail);
+    void recordEvent(String eventType, UUID entityId, String detail);
 }

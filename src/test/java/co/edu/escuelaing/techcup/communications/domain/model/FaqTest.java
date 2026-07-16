@@ -24,20 +24,23 @@ class FaqTest {
 
     @Test
     void rejectsBlankAnswer() {
-        assertThatThrownBy(() -> Faq.create(Set.of("password"), " "))
+        Set<String> keywords = Set.of("password");
+        assertThatThrownBy(() -> Faq.create(keywords, " "))
                 .isInstanceOf(InvalidChatOperationException.class);
     }
 
     @Test
     void rejectsAnswerOverMaxLength() {
         String tooLong = "a".repeat(Faq.MAX_ANSWER_LENGTH + 1);
-        assertThatThrownBy(() -> Faq.create(Set.of("password"), tooLong))
+        Set<String> keywords = Set.of("password");
+        assertThatThrownBy(() -> Faq.create(keywords, tooLong))
                 .isInstanceOf(InvalidChatOperationException.class);
     }
 
     @Test
     void rejectsEmptyKeywords() {
-        assertThatThrownBy(() -> Faq.create(Set.of(), "answer"))
+        Set<String> keywords = Set.of();
+        assertThatThrownBy(() -> Faq.create(keywords, "answer"))
                 .isInstanceOf(InvalidChatOperationException.class);
     }
 
@@ -53,14 +56,16 @@ class FaqTest {
 
     @Test
     void rejectsBlankKeyword() {
-        assertThatThrownBy(() -> Faq.create(Set.of("   "), "answer"))
+        Set<String> keywords = Set.of("   ");
+        assertThatThrownBy(() -> Faq.create(keywords, "answer"))
                 .isInstanceOf(InvalidChatOperationException.class);
     }
 
     @Test
     void rejectsKeywordOverMaxLength() {
         String tooLong = "a".repeat(Faq.MAX_KEYWORD_LENGTH + 1);
-        assertThatThrownBy(() -> Faq.create(Set.of(tooLong), "answer"))
+        Set<String> keywords = Set.of(tooLong);
+        assertThatThrownBy(() -> Faq.create(keywords, "answer"))
                 .isInstanceOf(InvalidChatOperationException.class);
     }
 
@@ -73,6 +78,7 @@ class FaqTest {
     }
 
     @Test
+    @SuppressWarnings("java:S2925") // brief real sleep guarantees the update timestamp differs from creation
     void updateReplacesFieldsAndBumpsUpdatedAt() throws InterruptedException {
         Faq faq = Faq.create(Set.of("password"), "old answer");
         Instant originalUpdatedAt = faq.getUpdatedAt();
@@ -89,7 +95,8 @@ class FaqTest {
     void updateRevalidatesFields() {
         Faq faq = Faq.create(Set.of("password"), "answer");
 
-        assertThatThrownBy(() -> faq.update(Set.of("password"), " "))
+        Set<String> keywords = Set.of("password");
+        assertThatThrownBy(() -> faq.update(keywords, " "))
                 .isInstanceOf(InvalidChatOperationException.class);
     }
 }
