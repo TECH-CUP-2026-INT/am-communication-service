@@ -23,7 +23,6 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -60,7 +59,7 @@ class ChatbotSupportHandlerTest {
     void answersWithTheAiReplyAndAlwaysEscalatesToModerator() {
         SupportTicket ticket = newTicketAtChatbotLevel("I can't log in");
         when(messageRepository.save(any(Message.class))).thenAnswer(inv -> inv.getArgument(0));
-        when(messageRepository.findByChat_IdOrderBySentAtAsc(ticket.getChatId())).thenReturn(List.of());
+        when(messageRepository.findByChatIdOrderBySentAtAsc(ticket.getChatId())).thenReturn(List.of());
         when(chatbotClient.generateReply("Ticket subject: I can't log in")).thenReturn("Try clearing your browser cache.");
 
         SupportResult result = handler.handle(ticket);
@@ -81,23 +80,23 @@ class ChatbotSupportHandlerTest {
         SupportTicket ticket = newTicketAtChatbotLevel("cannot join tournament");
         Message faqReply = ticket.getChat().postMessage(SupportBotIdentity.BOT_USER_ID, "Try the Teams section.");
         when(messageRepository.save(any(Message.class))).thenAnswer(inv -> inv.getArgument(0));
-        when(messageRepository.findByChat_IdOrderBySentAtAsc(ticket.getChatId())).thenReturn(List.of(faqReply));
+        when(messageRepository.findByChatIdOrderBySentAtAsc(ticket.getChatId())).thenReturn(List.of(faqReply));
         when(chatbotClient.generateReply(any())).thenReturn("Let's dig deeper into that.");
 
         handler.handle(ticket);
 
-        verify(chatbotClient).generateReply(eq("""
+        verify(chatbotClient).generateReply("""
                 Ticket subject: cannot join tournament
 
                 Conversation so far:
-                - Assistant: Try the Teams section."""));
+                - Assistant: Try the Teams section.""");
     }
 
     @Test
     void fallsBackAndStillEscalatesWhenGroqIsUnavailable() {
         SupportTicket ticket = newTicketAtChatbotLevel("I can't log in");
         when(messageRepository.save(any(Message.class))).thenAnswer(inv -> inv.getArgument(0));
-        when(messageRepository.findByChat_IdOrderBySentAtAsc(ticket.getChatId())).thenReturn(List.of());
+        when(messageRepository.findByChatIdOrderBySentAtAsc(ticket.getChatId())).thenReturn(List.of());
         when(chatbotClient.generateReply(any())).thenThrow(new IntegrationException("groq chatbot service", new RuntimeException()));
 
         SupportResult result = handler.handle(ticket);
@@ -114,7 +113,7 @@ class ChatbotSupportHandlerTest {
     void truncatesRepliesLongerThanTheMessageLimit() {
         SupportTicket ticket = newTicketAtChatbotLevel("issue");
         when(messageRepository.save(any(Message.class))).thenAnswer(inv -> inv.getArgument(0));
-        when(messageRepository.findByChat_IdOrderBySentAtAsc(ticket.getChatId())).thenReturn(List.of());
+        when(messageRepository.findByChatIdOrderBySentAtAsc(ticket.getChatId())).thenReturn(List.of());
         String longReply = "a".repeat(Message.MAX_CONTENT_LENGTH + 50);
         when(chatbotClient.generateReply(any())).thenReturn(longReply);
 

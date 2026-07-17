@@ -1,6 +1,5 @@
 package co.edu.escuelaing.techcup.communications.infrastructure.out.persistence.jpa;
 
-import co.edu.escuelaing.techcup.communications.infrastructure.out.persistence.jpa.ChatDao;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

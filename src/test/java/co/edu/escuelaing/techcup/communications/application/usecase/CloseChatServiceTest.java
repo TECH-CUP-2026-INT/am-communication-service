@@ -61,9 +61,10 @@ class CloseChatServiceTest {
         Chat chat = Chat.create(ChatType.DIRECT, null);
         chat.addParticipant(caller, ParticipantRole.MEMBER);
         chat.close();
-        when(chatRepository.findById(chat.getId())).thenReturn(Optional.of(chat));
+        UUID chatId = chat.getId();
+        when(chatRepository.findById(chatId)).thenReturn(Optional.of(chat));
 
-        assertThatThrownBy(() -> service.close(chat.getId(), caller))
+        assertThatThrownBy(() -> service.close(chatId, caller))
                 .isInstanceOf(InvalidChatOperationException.class);
         verify(chatRepository, never()).save(any());
     }
@@ -72,9 +73,10 @@ class CloseChatServiceTest {
     void throwsWhenCallerIsNotAParticipant() {
         Chat chat = Chat.create(ChatType.DIRECT, null);
         chat.addParticipant(UUID.randomUUID(), ParticipantRole.MEMBER);
-        when(chatRepository.findById(chat.getId())).thenReturn(Optional.of(chat));
+        UUID chatId = chat.getId();
+        when(chatRepository.findById(chatId)).thenReturn(Optional.of(chat));
 
-        assertThatThrownBy(() -> service.close(chat.getId(), caller))
+        assertThatThrownBy(() -> service.close(chatId, caller))
                 .isInstanceOf(ParticipantNotAllowedException.class);
         verify(chatRepository, never()).save(any());
     }

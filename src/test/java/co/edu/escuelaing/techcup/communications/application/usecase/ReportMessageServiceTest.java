@@ -53,7 +53,7 @@ class ReportMessageServiceTest {
     void createsReportAndFlagsMessage() {
         Message message = aMessage();
         when(messageRepository.findById(message.getId())).thenReturn(Optional.of(message));
-        when(reportedMessageRepository.existsByMessage_IdAndReporterId(message.getId(), reporter)).thenReturn(false);
+        when(reportedMessageRepository.existsByMessageIdAndReporterId(message.getId(), reporter)).thenReturn(false);
         when(reportedMessageRepository.save(any(ReportedMessage.class))).thenAnswer(inv -> inv.getArgument(0));
 
         ReportedMessage report = service.report(new ReportMessageCommand(message.getId(), reporter, "spam"));
@@ -68,7 +68,8 @@ class ReportMessageServiceTest {
         UUID id = UUID.randomUUID();
         when(messageRepository.findById(id)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.report(new ReportMessageCommand(id, reporter, "spam")))
+        ReportMessageCommand command = new ReportMessageCommand(id, reporter, "spam");
+        assertThatThrownBy(() -> service.report(command))
                 .isInstanceOf(MessageNotFoundException.class);
         verify(reportedMessageRepository, never()).save(any());
     }
@@ -77,9 +78,10 @@ class ReportMessageServiceTest {
     void rejectsDuplicateReportFromSameReporter() {
         Message message = aMessage();
         when(messageRepository.findById(message.getId())).thenReturn(Optional.of(message));
-        when(reportedMessageRepository.existsByMessage_IdAndReporterId(message.getId(), reporter)).thenReturn(true);
+        when(reportedMessageRepository.existsByMessageIdAndReporterId(message.getId(), reporter)).thenReturn(true);
 
-        assertThatThrownBy(() -> service.report(new ReportMessageCommand(message.getId(), reporter, "spam")))
+        ReportMessageCommand command = new ReportMessageCommand(message.getId(), reporter, "spam");
+        assertThatThrownBy(() -> service.report(command))
                 .isInstanceOf(MessageAlreadyReportedException.class);
         verify(reportedMessageRepository, never()).save(any());
     }
@@ -89,7 +91,7 @@ class ReportMessageServiceTest {
         Message message = aMessage();
         message.markReported();
         when(messageRepository.findById(message.getId())).thenReturn(Optional.of(message));
-        when(reportedMessageRepository.existsByMessage_IdAndReporterId(message.getId(), reporter)).thenReturn(false);
+        when(reportedMessageRepository.existsByMessageIdAndReporterId(message.getId(), reporter)).thenReturn(false);
         when(reportedMessageRepository.save(any(ReportedMessage.class))).thenAnswer(inv -> inv.getArgument(0));
 
         service.report(new ReportMessageCommand(message.getId(), reporter, "spam"));
@@ -103,7 +105,8 @@ class ReportMessageServiceTest {
         message.markDeleted();
         when(messageRepository.findById(message.getId())).thenReturn(Optional.of(message));
 
-        assertThatThrownBy(() -> service.report(new ReportMessageCommand(message.getId(), reporter, "spam")))
+        ReportMessageCommand command = new ReportMessageCommand(message.getId(), reporter, "spam");
+        assertThatThrownBy(() -> service.report(command))
                 .isInstanceOf(InvalidChatOperationException.class);
         verify(reportedMessageRepository, never()).save(any());
     }

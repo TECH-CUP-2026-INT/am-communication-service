@@ -21,7 +21,6 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -82,8 +81,8 @@ class JwtAuthenticationFilterTest {
         filter.doFilter(request, response, filterChain);
 
         assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
-        verify(errorResponder).write(eq(request), eq(response), eq(HttpStatus.UNAUTHORIZED),
-                eq("The provided JWT is not valid"));
+        verify(errorResponder).write(request, response, HttpStatus.UNAUTHORIZED,
+                "The provided JWT is not valid");
         verify(filterChain, never()).doFilter(any(), any());
     }
 }

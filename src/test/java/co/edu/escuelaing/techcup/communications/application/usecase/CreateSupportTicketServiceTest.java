@@ -57,7 +57,7 @@ class CreateSupportTicketServiceTest {
         assertThat(ticket.getChat().isParticipant(requester)).isTrue();
         assertThat(ticket.getChat().isParticipant(SupportBotIdentity.BOT_USER_ID)).isTrue();
         verify(chatRepository).save(any(Chat.class));
-        verify(auditServiceClient).record(eq("SUPPORT_TICKET_CREATED"), any(), any());
+        verify(auditServiceClient).recordEvent(eq("SUPPORT_TICKET_CREATED"), any(), any());
         verify(supportChainOrchestrator).runAutomatedStage(ticket);
     }
 }

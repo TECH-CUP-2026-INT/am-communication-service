@@ -12,7 +12,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -34,16 +33,13 @@ public interface SupportControllerSwagger {
     @io.swagger.v3.oas.annotations.parameters.RequestBody(
             content = @Content(
                     schema = @Schema(implementation = CreateSupportTicketRequest.class),
-                    examples = @ExampleObject(value = """
-                            {"subject": "No puedo ingresar al torneo"}""")))
-    @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Ticket de soporte creado exitosamente",
-                    content = @Content(schema = @Schema(implementation = SupportTicketResponse.class))),
-            @ApiResponse(responseCode = "400", description = "Solicitud inválida",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-            @ApiResponse(responseCode = "401", description = "Autenticación requerida",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
-    })
+                    examples = @ExampleObject(value = "{\"subject\": \"No puedo ingresar al torneo\"}")))
+    @ApiResponse(responseCode = "201", description = "Ticket de soporte creado exitosamente",
+            content = @Content(schema = @Schema(implementation = SupportTicketResponse.class)))
+    @ApiResponse(responseCode = "400", description = "Solicitud inválida",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @ApiResponse(responseCode = "401", description = "Autenticación requerida",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     ResponseEntity<SupportTicketResponse> create(CreateSupportTicketRequest request, AuthenticatedUser caller, UriComponentsBuilder uriBuilder);
 
     @Operation(
@@ -53,18 +49,15 @@ public interface SupportControllerSwagger {
     @io.swagger.v3.oas.annotations.parameters.RequestBody(
             content = @Content(
                     schema = @Schema(implementation = ReplySupportTicketRequest.class),
-                    examples = @ExampleObject(value = """
-                            {"content": "Ya revisamos tu caso, por favor intenta de nuevo"}""")))
-    @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Respuesta enviada exitosamente",
-                    content = @Content(schema = @Schema(implementation = MessageResponse.class))),
-            @ApiResponse(responseCode = "400", description = "Solicitud inválida",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-            @ApiResponse(responseCode = "401", description = "Autenticación requerida",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-            @ApiResponse(responseCode = "404", description = "Ticket de soporte no encontrado",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
-    })
+                    examples = @ExampleObject(value = "{\"content\": \"Ya revisamos tu caso, por favor intenta de nuevo\"}")))
+    @ApiResponse(responseCode = "201", description = "Respuesta enviada exitosamente",
+            content = @Content(schema = @Schema(implementation = MessageResponse.class)))
+    @ApiResponse(responseCode = "400", description = "Solicitud inválida",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @ApiResponse(responseCode = "401", description = "Autenticación requerida",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @ApiResponse(responseCode = "404", description = "Ticket de soporte no encontrado",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     ResponseEntity<MessageResponse> reply(
             @Parameter(description = "Identificador del ticket de soporte", example = "550e8400-e29b-41d4-a716-446655440000")
             UUID id,
@@ -76,16 +69,14 @@ public interface SupportControllerSwagger {
             summary = "Escalate a support ticket",
             description = "Escalates a support ticket for further review or higher-level assistance."
     )
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Ticket de soporte escalado exitosamente",
-                    content = @Content(schema = @Schema(implementation = SupportTicketResponse.class))),
-            @ApiResponse(responseCode = "401", description = "Autenticación requerida",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-            @ApiResponse(responseCode = "403", description = "El usuario no está autorizado a escalar este ticket",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-            @ApiResponse(responseCode = "404", description = "Ticket de soporte no encontrado",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
-    })
+    @ApiResponse(responseCode = "200", description = "Ticket de soporte escalado exitosamente",
+            content = @Content(schema = @Schema(implementation = SupportTicketResponse.class)))
+    @ApiResponse(responseCode = "401", description = "Autenticación requerida",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @ApiResponse(responseCode = "403", description = "El usuario no está autorizado a escalar este ticket",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @ApiResponse(responseCode = "404", description = "Ticket de soporte no encontrado",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     ResponseEntity<SupportTicketResponse> escalate(
             @Parameter(description = "Identificador del ticket de soporte", example = "550e8400-e29b-41d4-a716-446655440000")
             UUID id,

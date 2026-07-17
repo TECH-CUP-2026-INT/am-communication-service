@@ -45,7 +45,8 @@ class UpdateFaqServiceTest {
         UUID id = UUID.randomUUID();
         when(faqRepository.findById(id)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.update(new UpdateFaqCommand(id, Set.of("password"), "answer")))
+        UpdateFaqCommand command = new UpdateFaqCommand(id, Set.of("password"), "answer");
+        assertThatThrownBy(() -> service.update(command))
                 .isInstanceOf(FaqNotFoundException.class);
     }
 }

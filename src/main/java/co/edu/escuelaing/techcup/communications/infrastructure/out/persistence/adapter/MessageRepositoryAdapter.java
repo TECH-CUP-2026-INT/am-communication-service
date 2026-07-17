@@ -36,12 +36,12 @@ class MessageRepositoryAdapter implements MessageRepository {
     }
 
     @Override
-    public Page<Message> findByChat_Id(UUID chatId, Pageable pageable) {
+    public Page<Message> findByChatId(UUID chatId, Pageable pageable) {
         return jpaRepository.findByChat_Id(chatId, pageable).map(mapper::toDomain);
     }
 
     @Override
-    public List<Message> findByChat_IdOrderBySentAtAsc(UUID chatId) {
+    public List<Message> findByChatIdOrderBySentAtAsc(UUID chatId) {
         return jpaRepository.findByChat_IdOrderBySentAtAsc(chatId).stream().map(mapper::toDomain).toList();
     }
 }

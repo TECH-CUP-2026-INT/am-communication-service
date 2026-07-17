@@ -52,9 +52,10 @@ class GetChatServiceTest {
     void throwsWhenCallerIsNotAParticipant() {
         Chat chat = Chat.create(ChatType.DIRECT, null);
         chat.addParticipant(UUID.randomUUID(), ParticipantRole.MEMBER);
-        when(chatRepository.findById(chat.getId())).thenReturn(Optional.of(chat));
+        UUID chatId = chat.getId();
+        when(chatRepository.findById(chatId)).thenReturn(Optional.of(chat));
 
-        assertThatThrownBy(() -> service.getById(chat.getId(), caller))
+        assertThatThrownBy(() -> service.getById(chatId, caller))
                 .isInstanceOf(ParticipantNotAllowedException.class);
     }
 }

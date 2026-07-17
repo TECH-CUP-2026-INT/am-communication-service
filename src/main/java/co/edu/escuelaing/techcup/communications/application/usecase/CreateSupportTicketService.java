@@ -35,7 +35,7 @@ public class CreateSupportTicketService implements CreateSupportTicketUseCase {
         SupportTicket ticket = supportTicketRepository.save(
                 SupportTicket.open(chat, command.requesterId(), command.subject()));
 
-        auditServiceClient.record("SUPPORT_TICKET_CREATED", ticket.getId(),
+        auditServiceClient.recordEvent("SUPPORT_TICKET_CREATED", ticket.getId(),
                 "requester=" + command.requesterId());
 
         supportChainOrchestrator.runAutomatedStage(ticket);

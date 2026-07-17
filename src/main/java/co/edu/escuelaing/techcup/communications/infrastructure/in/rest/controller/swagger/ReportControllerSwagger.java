@@ -10,7 +10,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -31,20 +30,17 @@ public interface ReportControllerSwagger {
     @io.swagger.v3.oas.annotations.parameters.RequestBody(
             content = @Content(
                     schema = @Schema(implementation = ResolveReportRequest.class),
-                    examples = @ExampleObject(value = """
-                            {"resolutionStatus": "RESOLVED", "note": "Se eliminó el mensaje", "actionType": "DELETE_MESSAGE"}""")))
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Reporte resuelto exitosamente",
-                    content = @Content(schema = @Schema(implementation = ReportedMessageResponse.class))),
-            @ApiResponse(responseCode = "400", description = "Solicitud inválida",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-            @ApiResponse(responseCode = "401", description = "Autenticación requerida",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-            @ApiResponse(responseCode = "403", description = "El usuario no está autorizado a resolver reportes",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-            @ApiResponse(responseCode = "404", description = "Reporte no encontrado",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
-    })
+                    examples = @ExampleObject(value = "{\"resolutionStatus\": \"RESOLVED\", \"note\": \"Se eliminó el mensaje\", \"actionType\": \"DELETE_MESSAGE\"}")))
+    @ApiResponse(responseCode = "200", description = "Reporte resuelto exitosamente",
+            content = @Content(schema = @Schema(implementation = ReportedMessageResponse.class)))
+    @ApiResponse(responseCode = "400", description = "Solicitud inválida",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @ApiResponse(responseCode = "401", description = "Autenticación requerida",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @ApiResponse(responseCode = "403", description = "El usuario no está autorizado a resolver reportes",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @ApiResponse(responseCode = "404", description = "Reporte no encontrado",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     ResponseEntity<ReportedMessageResponse> resolve(
             @Parameter(description = "Identificador del reporte", example = "550e8400-e29b-41d4-a716-446655440000")
             UUID id,

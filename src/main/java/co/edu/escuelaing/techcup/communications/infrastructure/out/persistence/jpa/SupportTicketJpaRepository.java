@@ -1,7 +1,6 @@
 package co.edu.escuelaing.techcup.communications.infrastructure.out.persistence.jpa;
 
 import co.edu.escuelaing.techcup.communications.domain.model.enums.SupportTicketStatus;
-import co.edu.escuelaing.techcup.communications.infrastructure.out.persistence.jpa.SupportTicketDao;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

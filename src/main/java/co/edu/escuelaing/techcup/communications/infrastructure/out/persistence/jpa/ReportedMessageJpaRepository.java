@@ -1,7 +1,6 @@
 package co.edu.escuelaing.techcup.communications.infrastructure.out.persistence.jpa;
 
 import co.edu.escuelaing.techcup.communications.domain.model.enums.ReportStatus;
-import co.edu.escuelaing.techcup.communications.infrastructure.out.persistence.jpa.ReportedMessageDao;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

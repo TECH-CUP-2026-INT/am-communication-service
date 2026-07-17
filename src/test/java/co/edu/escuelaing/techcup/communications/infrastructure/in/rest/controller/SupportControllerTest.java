@@ -34,7 +34,6 @@ import java.util.UUID;
 import static co.edu.escuelaing.techcup.communications.infrastructure.in.rest.controller.TestCallers.caller;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -117,7 +116,7 @@ class SupportControllerTest {
     void escalateReturns200WithNewLevel() throws Exception {
         SupportTicket ticket = sampleTicket();
         ticket.escalateTo(SupportLevel.CHATBOT);
-        when(escalateConversationUseCase.escalate(eq(ticket.getId()), eq(requester))).thenReturn(ticket);
+        when(escalateConversationUseCase.escalate(ticket.getId(), requester)).thenReturn(ticket);
 
         mockMvc.perform(post("/support/tickets/{id}/escalate", ticket.getId())
                         .with(caller(requester, ParticipantRole.MODERATOR.name())))
@@ -129,7 +128,7 @@ class SupportControllerTest {
     @Test
     void escalateMissingTicketReturns404() throws Exception {
         UUID id = UUID.randomUUID();
-        when(escalateConversationUseCase.escalate(eq(id), eq(requester)))
+        when(escalateConversationUseCase.escalate(id, requester))
                 .thenThrow(new SupportTicketNotFoundException(id));
 
         mockMvc.perform(post("/support/tickets/{id}/escalate", id)

@@ -31,6 +31,7 @@ import java.util.UUID;
 import static co.edu.escuelaing.techcup.communications.infrastructure.in.rest.controller.TestCallers.caller;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -178,7 +179,7 @@ class FaqControllerTest {
     @Test
     void deleteMissingReturns404() throws Exception {
         UUID id = UUID.randomUUID();
-        org.mockito.Mockito.doThrow(new FaqNotFoundException(id)).when(deleteFaqUseCase).delete(id);
+        doThrow(new FaqNotFoundException(id)).when(deleteFaqUseCase).delete(id);
 
         mockMvc.perform(delete("/faqs/{id}", id)
                         .with(caller(moderator, ParticipantRole.MODERATOR.name())))

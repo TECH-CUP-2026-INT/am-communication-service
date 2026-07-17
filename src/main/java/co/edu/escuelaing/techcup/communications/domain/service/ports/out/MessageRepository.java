@@ -15,7 +15,7 @@ public interface MessageRepository {
 
     Message save(Message message);
 
-    Page<Message> findByChat_Id(UUID chatId, Pageable pageable);
+    Page<Message> findByChatId(UUID chatId, Pageable pageable);
 
-    List<Message> findByChat_IdOrderBySentAtAsc(UUID chatId);
+    List<Message> findByChatIdOrderBySentAtAsc(UUID chatId);
 }

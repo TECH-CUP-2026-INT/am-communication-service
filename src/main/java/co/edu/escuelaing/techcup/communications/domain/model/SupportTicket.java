@@ -44,6 +44,9 @@ public class SupportTicket {
         return new SupportTicket(chat, requesterId, subject);
     }
 
+    // Reconstruction from a persisted row: every column maps to one argument, so the parameter
+    // count mirrors the stored state and a builder would only add indirection here.
+    @SuppressWarnings("java:S107")
     public static SupportTicket fromPersistence(UUID id, Chat chat, UUID requesterId, String subject,
                                                  SupportTicketStatus status, SupportLevel currentLevel,
                                                  UUID assignedTo, Instant createdAt, Instant updatedAt) {

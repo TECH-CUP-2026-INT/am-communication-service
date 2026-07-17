@@ -77,7 +77,8 @@ class EscalateConversationServiceTest {
         when(supportTicketRepository.findById(ticket.getId())).thenReturn(Optional.of(ticket));
         when(chatRepository.isParticipant(ticket.getChatId(), caller)).thenReturn(false);
 
-        assertThatThrownBy(() -> service.escalate(ticket.getId(), caller))
+        UUID ticketId = ticket.getId();
+        assertThatThrownBy(() -> service.escalate(ticketId, caller))
                 .isInstanceOf(ParticipantNotAllowedException.class);
         verify(supportChainOrchestrator, never()).escalate(any());
     }

@@ -36,7 +36,7 @@ class ReportedMessageRepositoryAdapter implements ReportedMessageRepository {
     }
 
     @Override
-    public boolean existsByMessage_IdAndReporterId(UUID messageId, UUID reporterId) {
+    public boolean existsByMessageIdAndReporterId(UUID messageId, UUID reporterId) {
         return jpaRepository.existsByMessage_IdAndReporterId(messageId, reporterId);
     }
 

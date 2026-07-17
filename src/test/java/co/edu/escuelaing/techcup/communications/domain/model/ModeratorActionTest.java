@@ -16,7 +16,7 @@ class ModeratorActionTest {
 
     @Test
     void recordsAction() {
-        ModeratorAction action = ModeratorAction.record(
+        ModeratorAction action = ModeratorAction.of(
                 moderator, "MESSAGE", target, ModeratorActionType.DELETE_MESSAGE, "abusive");
 
         assertThat(action.getId()).isNotNull();
@@ -30,7 +30,7 @@ class ModeratorActionTest {
 
     @Test
     void rejectsBlankTargetType() {
-        assertThatThrownBy(() -> ModeratorAction.record(
+        assertThatThrownBy(() -> ModeratorAction.of(
                 moderator, " ", target, ModeratorActionType.WARN, null))
                 .isInstanceOf(InvalidChatOperationException.class);
     }

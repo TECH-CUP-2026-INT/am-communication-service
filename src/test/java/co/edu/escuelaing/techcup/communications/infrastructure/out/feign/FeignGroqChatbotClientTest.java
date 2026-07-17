@@ -13,6 +13,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -44,7 +45,7 @@ class FeignGroqChatbotClientTest {
         client().generateReply("I can't log in");
 
         ArgumentCaptor<GroqChatRequest> captor = ArgumentCaptor.forClass(GroqChatRequest.class);
-        org.mockito.Mockito.verify(feignClient).createChatCompletion(captor.capture());
+        verify(feignClient).createChatCompletion(captor.capture());
         assertThat(captor.getValue().model()).isEqualTo("test-model");
         assertThat(captor.getValue().messages())
                 .extracting(GroqChatMessage::role, GroqChatMessage::content)
@@ -57,13 +58,15 @@ class FeignGroqChatbotClientTest {
     void wrapsADownstreamFailure() {
         when(feignClient.createChatCompletion(any())).thenThrow(FeignExceptions.withStatus(500));
 
-        assertThatThrownBy(() -> client().generateReply("hi")).isInstanceOf(IntegrationException.class);
+        var chatbot = client();
+        assertThatThrownBy(() -> chatbot.generateReply("hi")).isInstanceOf(IntegrationException.class);
     }
 
     @Test
     void wrapsAnEmptyChoicesResponse() {
         when(feignClient.createChatCompletion(any())).thenReturn(new GroqChatResponse(List.of()));
 
-        assertThatThrownBy(() -> client().generateReply("hi")).isInstanceOf(IntegrationException.class);
+        var chatbot = client();
+        assertThatThrownBy(() -> chatbot.generateReply("hi")).isInstanceOf(IntegrationException.class);
     }
 }

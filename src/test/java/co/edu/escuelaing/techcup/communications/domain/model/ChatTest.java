@@ -39,7 +39,8 @@ class ChatTest {
 
     @Test
     void nonGroupChatRejectsTeamId() {
-        assertThatThrownBy(() -> Chat.create(ChatType.DIRECT, UUID.randomUUID()))
+        UUID teamId = UUID.randomUUID();
+        assertThatThrownBy(() -> Chat.create(ChatType.DIRECT, teamId))
                 .isInstanceOf(InvalidChatOperationException.class);
     }
 
@@ -68,7 +69,8 @@ class ChatTest {
         Chat chat = Chat.create(ChatType.DIRECT, null);
         chat.addParticipant(userA, ParticipantRole.MEMBER);
 
-        assertThatThrownBy(() -> chat.getParticipants().clear())
+        var participants = chat.getParticipants();
+        assertThatThrownBy(participants::clear)
                 .isInstanceOf(UnsupportedOperationException.class);
     }
 

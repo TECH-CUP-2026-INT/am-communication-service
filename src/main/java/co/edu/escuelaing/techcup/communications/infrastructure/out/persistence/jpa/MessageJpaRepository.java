@@ -1,6 +1,5 @@
 package co.edu.escuelaing.techcup.communications.infrastructure.out.persistence.jpa;
 
-import co.edu.escuelaing.techcup.communications.infrastructure.out.persistence.jpa.MessageDao;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
