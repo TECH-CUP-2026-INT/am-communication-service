@@ -66,6 +66,33 @@ claim compatibility, and what each team still needs to expose — is tracked in
 - **Rich domain entities**: entities enforce their own invariants through behavior methods
   (see the [class diagram](#class-diagram)) rather than exposing plain setters, so state changes
   stay consistent with the domain rules.
+- **Builder** (`SupportPromptBuilder`, `domain/service/support/`): assembles the prompt sent to
+  the chatbot with a small fluent API — `.withSubject(...)`, `.withHistory(...)`, `.build()` — so
+  `ChatbotSupportHandler` doesn't hand-concatenate strings. `build()` starts from `"Ticket
+  subject: <subject>"` and, if there's prior conversation, appends a `"Conversation so far:"`
+  block with one line per message, labeled `Assistant`/`User` by comparing the sender id against
+  `SupportBotIdentity.BOT_USER_ID`. The last 10 messages of the ticket (`HISTORY_LIMIT`) are fed
+  in, and the resulting string is what actually gets sent to Groq via `ChatbotClient.generateReply`.
+  Keeping this in a builder means the prompt format can change in one place without touching the
+  handler's control flow.
+- **Chain of Responsibility** (support ticket escalation, `domain/service/support/`): each support
+  level is a handler that either resolves the ticket or passes it to the next level. The chain,
+  wired in `infrastructure/config/SupportChainConfig`, follows the order defined by `SupportLevel`
+  — `FAQ → CHATBOT → MODERATOR → ORGANIZER → PENDING`:
+    1. **`FaqSupportHandler`** (FAQ) — looks up a matching `Faq` by keyword and posts its answer;
+       stays open at this level so the user can escalate manually if it didn't help.
+    2. **`ChatbotSupportHandler`** (CHATBOT) — builds a prompt with `SupportPromptBuilder`, calls
+       the Groq-backed chatbot, and always escalates to MODERATOR afterwards (with a fallback
+       message if the AI call fails).
+    3. **`ModeratorSupportHandler`** (MODERATOR) — human tier; escalates straight to ORGANIZER.
+    4. **`OrganizerSupportHandler`** (ORGANIZER) — last human level; marks the ticket as pending
+       once handled.
+
+    `AbstractSupportHandler` implements the shared chain-walking logic (`canHandle` / delegate to
+    `next`), so each concrete handler only implements `level()` and `doHandle()`.
+    `SupportChainOrchestrator` holds the chain's head bean (`supportChainHead`) and is the only
+    entry point application services use to run or resume the chain — extending it later is, per
+    the config class's own javadoc, "a matter of inserting another handler in this single place."
 
 ## Components
 

@@ -6,8 +6,9 @@ Communications Service.
 | Name | Role | Responsibilities |
 |--------|-----|-------------------|
 | *To be completed* | Tech lead | Architecture, code review, technical decisions. |
-| *To be completed* | Backend developer | Services, REST controllers, and persistence (JPA/PostgreSQL). |
+| Tomas Quiceno Ostos | Backend developer | Services, REST/WebSocket controllers, and persistence (JPA/PostgreSQL). |
 | *To be completed* | Backend developer | WebSocket/STOMP channel and integration with other microservices. |
+| Sara Viviana Arteaga | Software Designer — UML Diagrams | Class and architecture diagrams, domain modeling. |
 | *To be completed* | QA / Tester | Test design and execution. |
 | *To be completed* | DevOps | Containerization, CI/CD, and deployment. |
 
@@ -34,9 +35,3 @@ platform. The organization currently hosts:
 | `TECH-CUP-2026-Docs` | — | Official platform-wide documentation |
 | `TECH-CUP-FRONT` | — | Frontend application |
 
-!!! note "Service naming"
-    Repository names share prefixes (`am-`, `cc-`, `mk-`, `ga-`) that appear to group them by
-    functional area or owning sub-team; this repository uses the `am-` prefix.
-    **To be completed:** confirm the meaning of each prefix with the other teams. See the
-    [organization on GitHub](https://github.com/orgs/TECH-CUP-2026-INT/repositories) for the
-    current, authoritative list of repositories.

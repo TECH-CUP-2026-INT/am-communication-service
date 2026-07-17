@@ -26,28 +26,6 @@ service's design is based on.
 | [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/) | Theme used for this documentation. |
 | [MkDocs](https://www.mkdocs.org/) | Documentation site generator. | 
 
-### Serving this documentation locally
-
-Requires Python 3:
-
-```bash
-python -m venv .venv-docs
-.venv-docs/bin/pip install mkdocs-material
-.venv-docs/bin/mkdocs serve   # http://localhost:8000
-```
-
-Build the static site:
-
-```bash
-.venv-docs/bin/mkdocs build
-```
-
-!!! tip "Publishing to GitHub Pages"
-    ```bash
-    .venv-docs/bin/mkdocs gh-deploy
-    ```
-    **To be completed:** confirm the team's official publishing branch and workflow.
-
 ## Glossary
 
 | Term | Definition |

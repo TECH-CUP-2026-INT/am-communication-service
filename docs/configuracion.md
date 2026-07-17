@@ -62,21 +62,6 @@ how to run the service locally, and the observability endpoints it exposes.
 | `GROQ_MODEL` | `llama-3.3-70b-versatile` | Chat completion model. |
 | `GROQ_SYSTEM_PROMPT` | *(empty → built-in default)* | Overrides the chatbot's system prompt. |
 
-## Running locally
-
-The project ships a `docker-compose.yml` with a PostgreSQL 16 instance and the service itself.
-Two variables have **no default** and must be provided explicitly:
-
-```bash
-export JWT_SECRET="<same secret as cc-identity-service>"
-export GROQ_API_KEY="<your Groq API key>"
-
-docker compose up
-```
-
-The app becomes available on `http://localhost:8080` (REST API, Swagger UI at `/swagger-ui.html`,
-and the STOMP endpoint) once the `postgres` health check passes.
-
 ## Observability
 
 Spring Boot Actuator is exposed with the following endpoints (`management.endpoints.web.exposure.include`):

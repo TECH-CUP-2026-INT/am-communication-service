@@ -1,8 +1,28 @@
 # Service Integration
 
-This page documents the actual contract between `am-communication-service` and two sibling
-microservices — `cc-identity-service` and `cc-teams-service` — as verified against their
-source on 2026-07-12, and the gaps that still block full interoperability.
+This page documents the actual contract between `am-communication-service` and the external
+services it talks to, as verified against their source on 2026-07-12 (identity/teams) and against
+this service's own Feign clients (notification/audit/Groq), plus the gaps that still block full
+interoperability with the sibling microservices.
+
+## Overview
+
+All outbound calls go through a **Feign client** (`infrastructure/out/feign/`) implementing a
+domain-level port, so the rest of the codebase depends on an interface, not on HTTP details. Each
+target has its own `integrations.*.base-url` property and its own Feign timeout profile.
+
+| Service | Direction | How it's called | What it's used for |
+|---|---|---|---|
+| `cc-identity-service` | Inbound (JWT) | Every authenticated REST/WebSocket request carries a JWT signed with a shared HS256 secret; this service validates it locally, it doesn't call identity per request. | Authenticating callers and resolving who they are. |
+| `cc-identity-service` | Outbound (optional) | `GET /users/{id}` via `UserServiceFeignClient`, toggle `USER_EXISTENCE_CHECK`. | Confirming a user exists before adding them to a chat. |
+| `cc-teams-service` | Outbound (optional) | `GET /teams/{id}` via `TeamServiceFeignClient`, toggle `TEAM_EXISTENCE_CHECK`. | Confirming a team exists before creating a team chat. |
+| `am-notification-service` | Outbound | `POST /notifications` via `NotificationServiceFeignClient`. | Notifying a user when their support ticket changes level. |
+| Audit service | Outbound | `POST /audit-events` via `AuditServiceFeignClient`. | Recording `SUPPORT_TRANSITION` events for traceability. |
+| Groq (LLM API) | Outbound | `POST /chat/completions` via `GroqChatFeignClient`, bearer-token authenticated. | Generating the chatbot's replies in the support chain. |
+
+The two existence checks (user/team) are the only calls that can be disabled per environment —
+everything else (notifications, audit, the chatbot) is always active, since none of them block a
+request the way an existence check would.
 
 ## Status snapshot
 
@@ -102,3 +122,45 @@ disabled, every id is treated as existing and a warning is logged once at startu
 2. Its intended port, so `TEAM_SERVICE_URL`'s default can be corrected if needed.
 3. Whether it will validate the same shared-secret HS256 JWT (recommended, for consistency with
    `cc-identity-service` and this service).
+
+## Notifications and auditing
+
+Both are one-way, fire-and-forget calls made by `SupportChainOrchestrator` whenever a support
+ticket moves through the [chain of responsibility](arquitectura.md#design-patterns) — the caller
+never blocks waiting on a rich response, only on the call succeeding.
+
+- **`am-notification-service`** (`NotificationServiceFeignClient` → `POST /notifications`, base
+  URL `integrations.notification-service.base-url`): tells the ticket's requester that their case
+  changed level (e.g. moved from the chatbot to a moderator), so they're not left refreshing the
+  chat waiting for a reply.
+- **Audit service** (`AuditServiceFeignClient` → `POST /audit-events`, base URL
+  `integrations.audit-service.base-url`): records a `SUPPORT_TRANSITION` event for every hop in
+  the chain, so there's a trail of who/what escalated a ticket and when — useful for both
+  moderation review and debugging the chain itself.
+
+Neither integration currently changes this service's response to the caller if the downstream call
+fails — they're best-effort side effects of an already-successful support action, not a
+precondition for it.
+
+## Chatbot (Groq)
+
+The chatbot step of the support chain (`ChatbotSupportHandler`) talks to the **Groq** chat
+completions API through `GroqChatFeignClient` → `FeignGroqChatbotClient`, which implements the
+`ChatbotClient` port. The prompt sent on each call is assembled by the
+[`SupportPromptBuilder`](arquitectura.md#design-patterns) from the ticket's subject and its recent
+message history.
+
+- **Base URL**: `integrations.groq.base-url` (Groq's public OpenAI-compatible endpoint).
+- **Auth**: a `RequestInterceptor`, scoped to this client only (not a global bean, precisely so it
+  doesn't leak onto the identity/teams/notification/audit clients), adds
+  `Authorization: Bearer <GROQ_API_KEY>` from `GroqProperties`. The API key has no default — the
+  application won't start without a real one configured.
+- **Model and system prompt**: configurable via `integrations.groq.model` and
+  `integrations.groq.system-prompt`, so the persona/behavior of the assistant can be tuned without
+  a code change.
+- **Timeout**: Groq gets its own Feign profile (`feign.client.config.groq-chatbot.read-timeout:
+  30000`, 30s) instead of the 5s default used for the plain existence checks, since a chat
+  completion legitimately takes longer than a lookup.
+- **Failure handling**: if the call raises an `IntegrationException`, the handler doesn't fail the
+  ticket — it posts a fallback message to the user and escalates straight to a human moderator, so
+  an AI outage degrades gracefully into "you'll talk to a person" rather than an error.

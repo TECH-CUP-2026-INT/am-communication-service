@@ -1,14 +1,8 @@
-# Requirements
+.# Requirements
 
 The functional requirements come from the project backlog (Astro Merge). The non-functional
 requirements are derived from the integrations between microservices and from the
 architecture decisions already made.
-
-    The functional requirements listed come from the **Jira backlog** shared by the
-    team. **No** backlog file, *issues*, or user stories were found
-    within the repository (`git log` with a single commit and no backlog files).
-    **To be completed:** link the Jira board or export the user stories
-    to the repository so they can be expanded and traced here.
 
 ## Functional requirements
 
@@ -20,11 +14,6 @@ architecture decisions already made.
 | RF-04 | Moderation of reported messages | A message can be reported and reviewed by a moderator, who records a resolution. | Planned |
 | RF-05 | Team group chat | Group chat associated with a team (`equipo_id`); requires validating membership. | Derived from the model/integrations |
 
-!!! info "RF-05 — inferred"
-    The **group** conversation type with `equipo_id` (data model) and the integration with
-    the **Teams Service** ("validate membership before allowing group chat") imply a
-    team group chat use case, even though it does not appear explicitly in the shared
-    backlog list. **To be completed:** confirm this story with the product team.
 
 ## Non-functional requirements
 
@@ -42,10 +31,6 @@ architecture decisions already made.
 | RNF-10 | Security | *To be completed: define TLS, CORS, and the WebSocket channel's authorization policy.* |
 
 ## Main use cases
-
-!!! note "Use case diagram"
-    Add the UML use case diagram here at `docs/assets/diagrams/casos-de-uso.png`.
-    <!-- ![Use case diagram](assets/diagrams/casos-de-uso.png) -->
 
 ### CU-01 — Support chat with escalation
 
@@ -84,5 +69,3 @@ architecture decisions already made.
 | **Main flow** | 1. Membership is validated. 2. The player subscribes to the group chat *topic*. 3. Real-time message exchange. |
 | **Postcondition** | Messages persisted and delivered to connected members. |
 
-    Document the acceptance criteria of each use case based on the Jira
-    stories.

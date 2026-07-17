@@ -75,9 +75,30 @@ notifications, and auditing) via API/events.
 
 [:material-github: TECH-CUP-2026-INT/am-communication-service](https://github.com/TECH-CUP-2026-INT/am-communication-service){ .md-button .md-button--primary }
 
+[![CI (Push)](https://github.com/TECH-CUP-2026-INT/am-communication-service/actions/workflows/ci-push.yml/badge.svg)](https://github.com/TECH-CUP-2026-INT/am-communication-service/actions/workflows/ci-push.yml)
+[![Deploy](https://github.com/TECH-CUP-2026-INT/am-communication-service/actions/workflows/deploy.yml/badge.svg)](https://github.com/TECH-CUP-2026-INT/am-communication-service/actions/workflows/deploy.yml)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=TECH-CUP-2026-INT_am-communication-service&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=TECH-CUP-2026-INT_am-communication-service)
+
 ---
+
+## Documentation map
+
+| Page | What you'll find there |
+|---|---|
+| [Introduction](introduccion.md) | Context, scope and problem this service solves within Astro Merge. |
+| [Requirements](requerimientos.md) | Functional and non-functional requirements. |
+| [Configuration](configuracion.md) | Environment variables, profiles, and how to run the service locally. |
+| [Architecture](arquitectura.md) | Layered design, design decisions (WebSocket, PostgreSQL), design patterns (Builder, Chain of Responsibility, DTO/Mapper, Repository), request flow, and the class diagram. |
+| [API](api.md) | REST and WebSocket endpoints, grouped by resource, in plain language guided by the Swagger annotations. |
+| [Service Integration](integracion-servicios.md) | How this service talks to `cc-identity-service`, `cc-teams-service`, `am-notification-service`, the audit service, and Groq — plus current integration gaps. |
+| [Testing](pruebas.md) | Testing stack, static analysis (SonarCloud), coverage status, and a tour of the most relevant test classes. |
+| [Team](equipo.md) | Who works on this service and the organization it belongs to. |
+| [Appendices](anexos.md) | References, glossary, and documentation tooling. |
 
 ## Where to start?
 
 - New to the project? Start with the [Introduction](introduccion.md).
 - Looking to understand the design and technical decisions? See the [Architecture](arquitectura.md).
+- Want to call the API? Jump straight to the [API reference](api.md).
+- Working on a sibling microservice? See [Service Integration](integracion-servicios.md) for the
+  current contract and open gaps.
