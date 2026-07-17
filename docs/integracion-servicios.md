@@ -1,9 +1,10 @@
 # Service Integration
 
 This page documents the actual contract between `am-communication-service` and the external
-services it talks to, as verified against their source on 2026-07-12 (identity/teams) and against
-this service's own Feign clients (notification/audit/Groq), plus the gaps that still block full
-interoperability with the sibling microservices.
+services it talks to, verified against their live source on 2026-07-17
+(`cc-identity-service`, `cc-teams-service`, `cc-users-players-service`, `am-notification-service`)
+and against this service's own Feign clients (notification/Groq), plus the gaps that still block
+full interoperability with the sibling microservices.
 
 ## Overview
 
@@ -14,78 +15,78 @@ target has its own `integrations.*.base-url` property and its own Feign timeout 
 | Service | Direction | How it's called | What it's used for |
 |---|---|---|---|
 | `cc-identity-service` | Inbound (JWT) | Every authenticated REST/WebSocket request carries a JWT signed with a shared HS256 secret; this service validates it locally, it doesn't call identity per request. | Authenticating callers and resolving who they are. |
-| `cc-identity-service` | Outbound (optional) | `GET /users/{id}` via `UserServiceFeignClient`, toggle `USER_EXISTENCE_CHECK`. | Confirming a user exists before adding them to a chat. |
+| `cc-users-players-service` | Outbound (optional) | `GET /internal/players/{id}/exists` via `UserServiceFeignClient`, toggle `USER_EXISTENCE_CHECK`. | Confirming a user exists before adding them to a chat. |
 | `cc-teams-service` | Outbound (optional) | `GET /teams/{id}` via `TeamServiceFeignClient`, toggle `TEAM_EXISTENCE_CHECK`. | Confirming a team exists before creating a team chat. |
-| `am-notification-service` | Outbound | `POST /notifications` via `NotificationServiceFeignClient`. | Notifying a user when their support ticket changes level. |
-| Audit service | Outbound | `POST /audit-events` via `AuditServiceFeignClient`. | Recording `SUPPORT_TRANSITION` events for traceability. |
+| `am-notification-service` | Outbound | `POST /api/notificaciones/mensajes` via `NotificationServiceFeignClient`, `X-Internal-Api-Key` header required. | Notifying a user when their support ticket changes level. |
 | Groq (LLM API) | Outbound | `POST /chat/completions` via `GroqChatFeignClient`, bearer-token authenticated. | Generating the chatbot's replies in the support chain. |
 
 The two existence checks (user/team) are the only calls that can be disabled per environment —
-everything else (notifications, audit, the chatbot) is always active, since none of them block a
-request the way an existence check would.
+notifications and the chatbot are always active, since neither blocks a request the way an
+existence check would (both are wrapped in best-effort error handling instead).
+
+There is **no standalone audit service** anywhere in the `TECH-CUP-2026-INT` organization, and per
+the team's own confirmation there never will be — `SUPPORT_TRANSITION` events are recorded with a
+local `log.info` in `SupportChainOrchestrator` instead of a remote call. An earlier version of this
+service called a phantom `audit-service` here; that integration has been removed entirely (see
+[Removed: audit service](#removed-audit-service) below).
 
 ## Status snapshot
 
-| Service | State | Blocking gap |
+| Service | State | Notes |
 |---|---|---|
-| `cc-identity-service` | Implemented (branch `develop`; `main` is an empty skeleton) | JWT lacks `userId`/`username`/`roles` claims; no user-lookup endpoint |
-| `cc-teams-service` | Empty skeleton (no controllers, entities, or config on any branch) | No endpoints at all yet |
-
-Until both gaps close, this service runs with mitigations described below so it isn't blocked
-on dependencies that don't exist yet.
+| `cc-identity-service` | Implemented (`main`) | Owns auth/credentials only. JWT `sub` is the real user UUID; `role` (singular) claim present. No user-lookup endpoint — that's `cc-users-players-service`'s job. |
+| `cc-users-players-service` | Implemented (`main`) | Source of truth for `userId` and profile data. Exposes `InternalPlayerController` specifically for service-to-service calls (existence, public profile, captaincy). |
+| `cc-teams-service` | Implemented (`main`) | Exposes `TeamInfoController` at `/teams/{teamId}` (unauthenticated, service-to-service), built for `mk-tournament-service` and `cc-users-players-service` but usable by us the same way. |
 
 ## JWT compatibility
 
-Both services sign HS256 tokens with `jjwt`, and both read the signing secret from the `JWT_SECRET`
-environment variable (`security.jwt.secret` here, `app.jwt.secret` there) — **the values must
-match in every deployment**, but the algorithm and the env var name already line up.
+Both `cc-identity-service` and this service sign HS256 tokens with `jjwt`, and both read the
+signing secret from the `JWT_SECRET` environment variable (`security.jwt.secret` here, `jwt.secret`
+there) — **the values must match in every deployment**.
 
-`cc-identity-service` currently only puts `sub` (the user's **email**, not a UUID), `iat` and
-`exp` in the token — no `username`, no `roles`, no `iss`/`aud`. This service's domain keys
-everything (chat participants, message senders) by UUID, so `JwtService` resolves the caller id
-with a fallback chain instead of requiring `sub` to already be a UUID:
+`cc-identity-service`'s `JwtUtil.generateToken` puts the real user UUID in `sub`, plus `email` and
+a **singular** `role` claim (e.g. `"ORGANIZER"`, not a `roles` array). `JwtService.parse` here
+handles both:
 
-1. `sub` is a UUID → used as-is (unchanged behavior for well-formed tokens).
-2. Otherwise, a `userId` claim (UUID string) → used if present.
-3. Otherwise, a UUID derived deterministically from the (non-blank) `sub` via
-   `UUID.nameUUIDFromBytes` — the same subject always maps to the same id.
-4. A blank/absent `sub` is always rejected.
+1. Caller id: `sub` is used directly when it's a UUID (the normal case with real
+   `cc-identity-service` tokens today). A `userId` claim, then a deterministic UUID derived from a
+   non-UUID `sub`, remain as fallbacks for tokens issued elsewhere that don't already put a UUID in
+   `sub`.
+2. Roles: a `roles` array claim is read if present; otherwise a singular `role` string claim (what
+   `cc-identity-service` actually emits) is used as a one-element set. Absent both, the caller has
+   no roles.
 
-**This is a shim, not a real fix.** It lets `cc-identity-service` tokens authenticate today, but
-the synthetic id has no relationship to any id `cc-identity-service` itself knows about. Once
-that service issues a real `userId` claim, step 2 takes over automatically and this shim should
-be retired — existing chats created under a synthetic id will not automatically merge with the
-"real" id for the same user.
-
-`roles`: absent claims already yield an empty role set (no change needed). `cc-identity-service`'s
-roles (`USER`, `ADMIN`, `REFEREE`, `ORGANIZER`) live in its database, not in the token, so no role
-reaches this service today regardless. `iss`/`aud` stay unconfigured (`JWT_ISSUER`/`JWT_AUDIENCE`
-unset) since `cc-identity-service` doesn't emit them.
+`iss`/`aud` stay unconfigured (`JWT_ISSUER`/`JWT_AUDIENCE` unset) since `cc-identity-service`
+doesn't emit them.
 
 ### Role mapping
 
 This service's moderation endpoints (`POST /reports/{id}/resolve`, and looking up another user's
 chats via `GET /users/{id}/chats`) accept `MODERATOR` and `ORGANIZER` — this service's own
-participant roles — plus `ADMIN`, since that's `cc-identity-service`'s administrative role and it
-has no `MODERATOR` equivalent.
+participant roles — plus `ADMIN`, since that's `cc-identity-service`'s administrative role
+(`cc-identity-service`'s `UserRole` enum: `PLAYER`, `CAPTAIN`, `REFEREE`, `ORGANIZER`, `ADMIN`) and
+it has no `MODERATOR` equivalent.
 
 ## Outbound calls: what this service expects
 
 `UserServiceClient` / `TeamServiceClient` only need an existence check, used when creating a chat
 (`CreateChatService`):
 
-| Call | Method + path | Success | Not found | Auth header sent |
-|---|---|---|---|---|
-| User exists | `GET /users/{id}` | any 2xx (body ignored) | `404` | none |
-| Team exists | `GET /teams/{id}` | any 2xx (body ignored) | `404` | none |
+| Call | Method + path | Response shape |
+|---|---|---|
+| User exists | `GET /internal/players/{id}/exists` (cc-users-players-service) | Always `200` with `{"exists": boolean}` — never `404` |
+| Team exists | `GET /teams/{id}` (cc-teams-service) | `200` (body ignored) if it exists, `404` if not |
 
-Neither call currently sends `Authorization`. If either service starts requiring it, that's a
-change on this side to make (propagate the caller's bearer token) — flag it when the contract is
-agreed.
+Note the two checks have genuinely different response shapes, not just different paths: the player
+check always answers `200` and puts the boolean in the body, while the team check uses the HTTP
+status itself. `FeignUserServiceClient`/`FeignTeamServiceClient` each match their real endpoint's
+convention rather than forcing both into one shape.
 
-**Neither endpoint exists today**: `cc-identity-service` has no user-lookup route, and
-`cc-teams-service` has no routes at all. Each check can be disabled independently so
-`POST /chats` isn't blocked on a dependency that doesn't exist yet:
+Neither call currently sends `Authorization` — both are unauthenticated, internal,
+service-to-service endpoints on the other side. If either service starts requiring it, that's a
+change on this side to make (propagate the caller's bearer token).
+
+Both checks are enabled by default now that both real endpoints exist:
 
 ```yaml
 integrations:
@@ -95,52 +96,73 @@ integrations:
     existence-check-enabled: ${TEAM_EXISTENCE_CHECK:true}
 ```
 
-`docker-compose.yml` in this repo sets both to `false` by default (override with
-`USER_EXISTENCE_CHECK=true` / `TEAM_EXISTENCE_CHECK=true` once the endpoints exist). When
-disabled, every id is treated as existing and a warning is logged once at startup.
+When disabled, every id is treated as existing and a warning is logged once at startup — useful if
+either dependency becomes unreachable in some environment.
 
 ## Ports
 
-- `cc-identity-service` dev default: **`11711`** (its own `application.yml` literally flags this
-  as unconfirmed with other teams). This service's default `USER_SERVICE_URL` now points there.
-- `cc-teams-service` has no `server.port` configured at all (Spring Boot default `8080` would
-  apply as-is). This service's default `TEAM_SERVICE_URL` still assumes `8082` — confirm once
-  `cc-teams-service` picks a port.
+- `cc-identity-service` dev default: **`8081`**.
+- `cc-users-players-service` dev default: **`8084`**, with `server.servlet.context-path: /api/v1`
+  — so its full base URL is `http://host:8084/api/v1`, and `USER_SERVICE_URL` here is set
+  accordingly.
+- `cc-teams-service` dev default: **`5622`**.
 
-## What to ask the other teams for
+## Notifications
 
-**cc-identity-service:**
-1. A `userId` (UUID) claim in the JWT — this is the one that actually unblocks removing the
-   synthetic-id shim above.
-2. `username` and `roles` claims, if this service is meant to authorize by role from the token
-   alone rather than treating every caller as roleless.
-3. A `GET /users/{id}` (or equivalent) lookup endpoint.
-4. Confirmation that `11711` is the real, stable port across environments.
+`SupportChainOrchestrator` notifies the ticket's requester whenever their ticket moves through the
+[chain of responsibility](arquitectura.md#design-patterns) — a one-way, fire-and-forget call that
+never blocks the transition on a rich response, and is wrapped so a failure here doesn't undo the
+transition (which is already applied and logged by that point).
 
-**cc-teams-service:**
-1. A `GET /teams/{id}` lookup endpoint returning 200/404 (body not required by this service).
-2. Its intended port, so `TEAM_SERVICE_URL`'s default can be corrected if needed.
-3. Whether it will validate the same shared-secret HS256 JWT (recommended, for consistency with
-   `cc-identity-service` and this service).
+`am-notification-service` has no generic `POST /notifications`. Its actual code exposes
+`POST /api/notificaciones/mensajes` (`ChatEventController`), accepting a `ChatMessageEvent{chatId,
+senderId, senderName, recipientId, messagePreview, sentAt}` — their own comment marks this as a
+*"contrato propuesto, pendiente de confirmar"* aimed at this service, with two open questions:
+whether `recipientId` fans out per chat member for group chats, and whether the full message text
+or a truncated preview is expected.
 
-## Notifications and auditing
+`FeignNotificationServiceClient` adapts to this today for our one current use (support-ticket
+transitions, always a single recipient):
 
-Both are one-way, fire-and-forget calls made by `SupportChainOrchestrator` whenever a support
-ticket moves through the [chain of responsibility](arquitectura.md#design-patterns) — the caller
-never blocks waiting on a rich response, only on the call succeeding.
+- `chatId` = the ticket's underlying chat id.
+- `senderId` = `SupportBotIdentity.BOT_USER_ID`.
+- `senderName` = a fixed `"TechCup Support"` — this service has no display-name concept anywhere in
+  its domain (everything is UUID-keyed), so there's no real name to send. If this port is ever used
+  for an actual named human's message, this needs revisiting.
+- `messagePreview` = the transition detail string (e.g. `"ESCALATED: FAQ -> CHATBOT"`).
 
-- **`am-notification-service`** (`NotificationServiceFeignClient` → `POST /notifications`, base
-  URL `integrations.notification-service.base-url`): tells the ticket's requester that their case
-  changed level (e.g. moved from the chatbot to a moderator), so they're not left refreshing the
-  chat waiting for a reply.
-- **Audit service** (`AuditServiceFeignClient` → `POST /audit-events`, base URL
-  `integrations.audit-service.base-url`): records a `SUPPORT_TRANSITION` event for every hop in
-  the chain, so there's a trail of who/what escalated a ticket and when — useful for both
-  moderation review and debugging the chain itself.
+This sidesteps both open questions for *this* use case (never a fan-out, always a short string) but
+doesn't resolve them for a general-purpose use — flag it to the notification team if this port ever
+needs to carry a real chat message.
 
-Neither integration currently changes this service's response to the caller if the downstream call
-fails — they're best-effort side effects of an already-successful support action, not a
-precondition for it.
+**Authentication**: this and every other service-to-service webhook on `am-notification-service`
+(`SecurityConfig.SERVICE_TO_SERVICE_PATHS`) is guarded by `InternalApiKeyFilter`, requiring a
+matching `X-Internal-Api-Key` header (role `SERVICIO_INTERNO`) — a request without it is rejected
+with `401` before it reaches the controller, regardless of path. `NotificationFeignClientConfig`
+adds this header from `integrations.notification-service.api-key` (env `INTERNAL_API_KEY`), the
+same shared-secret env var name `am-notification-service` itself reads and that
+`cc-identity-service`'s internal email-lookup endpoint also expects — a real org-wide convention,
+not something specific to this pair of services. No default is set; an unconfigured key just means
+notifications fail with `401` instead of succeeding, caught the same way any other notification
+failure is.
+
+## Removed: audit service
+
+An earlier version of this integration called `POST /audit-events` on an `AUDIT_SERVICE_URL`
+(default `http://localhost:8084`) that never corresponded to any real service — no `audit-service`
+repository exists in the `TECH-CUP-2026-INT` organization, and the team has confirmed none is
+planned. Two call sites (`CreateSupportTicketService.create()` and
+`SupportChainOrchestrator`) called it; the one in `CreateSupportTicketService` had **no error
+handling at all**, so every support-ticket creation failed outright until this was removed.
+
+`AuditServiceClient`, `AuditServiceFeignClient`, `FeignAuditServiceClient`, and `AuditPayload` have
+been deleted, along with the `integrations.audit-service` config block. `SupportChainOrchestrator`
+now records each `SUPPORT_TRANSITION` with a local `log.info` instead.
+
+(`cc-identity-service` and `cc-teams-service` each have their own internal `AuditController` for
+querying *their own* security/audit trail — logins, role changes, etc. Those are admin-only query
+endpoints on each service's own data, not an ingestion endpoint this service could push events
+into, so they don't substitute for what was removed here.)
 
 ## Chatbot (Groq)
 
@@ -152,7 +174,7 @@ message history.
 
 - **Base URL**: `integrations.groq.base-url` (Groq's public OpenAI-compatible endpoint).
 - **Auth**: a `RequestInterceptor`, scoped to this client only (not a global bean, precisely so it
-  doesn't leak onto the identity/teams/notification/audit clients), adds
+  doesn't leak onto the identity/teams/notification clients), adds
   `Authorization: Bearer <GROQ_API_KEY>` from `GroqProperties`. The API key has no default — the
   application won't start without a real one configured.
 - **Model and system prompt**: configurable via `integrations.groq.model` and

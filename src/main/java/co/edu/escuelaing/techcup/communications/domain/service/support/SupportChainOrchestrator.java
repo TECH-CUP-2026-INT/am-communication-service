@@ -3,7 +3,6 @@ package co.edu.escuelaing.techcup.communications.domain.service.support;
 import co.edu.escuelaing.techcup.communications.domain.exception.IntegrationException;
 import co.edu.escuelaing.techcup.communications.domain.model.SupportTicket;
 import co.edu.escuelaing.techcup.communications.domain.model.enums.SupportLevel;
-import co.edu.escuelaing.techcup.communications.domain.service.ports.out.AuditServiceClient;
 import co.edu.escuelaing.techcup.communications.domain.service.ports.out.NotificationServiceClient;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -18,10 +17,8 @@ public class SupportChainOrchestrator {
     private static final Logger log = LoggerFactory.getLogger(SupportChainOrchestrator.class);
 
     private static final String TRANSITION_EVENT = "SUPPORT_TRANSITION";
-    private static final String NOTIFICATION_TITLE = "Support ticket updated";
 
     private final SupportHandler supportChainHead;
-    private final AuditServiceClient auditServiceClient;
     private final NotificationServiceClient notificationServiceClient;
 
 
@@ -43,11 +40,13 @@ public class SupportChainOrchestrator {
 
     private SupportResult recordAndNotify(SupportTicket ticket, SupportLevel from, SupportResult result) {
         String detail = "%s: %s -> %s".formatted(result.outcome(), from, ticket.getCurrentLevel());
-        auditServiceClient.recordEvent(TRANSITION_EVENT, ticket.getId(), detail);
-        // Best-effort: una falla notificando al usuario no debe tumbar la transición del
-        // ticket, que ya quedó aplicada y auditada en las líneas de arriba.
+        // No audit service is deployed anywhere in the org (and none is planned), so the
+        // transition is recorded locally instead of pretending there's somewhere to push it.
+        log.info("{} ticket={} detail={}", TRANSITION_EVENT, ticket.getId(), detail);
+        // Best-effort: a failure notifying the user must not tumble a transition that's already
+        // applied to the ticket.
         try {
-            notificationServiceClient.notify(ticket.getRequesterId(), NOTIFICATION_TITLE, detail);
+            notificationServiceClient.notify(ticket.getChatId(), ticket.getRequesterId(), detail);
         } catch (IntegrationException ex) {
             log.warn("No fue posible notificar al usuario {} sobre el ticket {}: {}",
                     ticket.getRequesterId(), ticket.getId(), ex.getMessage());

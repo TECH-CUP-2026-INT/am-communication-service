@@ -6,7 +6,6 @@ import co.edu.escuelaing.techcup.communications.domain.model.enums.SupportLevel;
 import co.edu.escuelaing.techcup.communications.domain.model.enums.SupportTicketStatus;
 import co.edu.escuelaing.techcup.communications.domain.service.ports.out.ChatRepository;
 import co.edu.escuelaing.techcup.communications.domain.service.ports.out.SupportTicketRepository;
-import co.edu.escuelaing.techcup.communications.domain.service.ports.out.AuditServiceClient;
 import co.edu.escuelaing.techcup.communications.application.usecase.command.CreateSupportTicketCommand;
 import co.edu.escuelaing.techcup.communications.domain.service.support.SupportBotIdentity;
 import co.edu.escuelaing.techcup.communications.domain.service.support.SupportChainOrchestrator;
@@ -20,7 +19,6 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -32,9 +30,6 @@ class CreateSupportTicketServiceTest {
 
     @Mock
     private SupportTicketRepository supportTicketRepository;
-
-    @Mock
-    private AuditServiceClient auditServiceClient;
 
     @Mock
     private SupportChainOrchestrator supportChainOrchestrator;
@@ -57,7 +52,6 @@ class CreateSupportTicketServiceTest {
         assertThat(ticket.getChat().isParticipant(requester)).isTrue();
         assertThat(ticket.getChat().isParticipant(SupportBotIdentity.BOT_USER_ID)).isTrue();
         verify(chatRepository).save(any(Chat.class));
-        verify(auditServiceClient).recordEvent(eq("SUPPORT_TICKET_CREATED"), any(), any());
         verify(supportChainOrchestrator).runAutomatedStage(ticket);
     }
 }

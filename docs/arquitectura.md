@@ -38,17 +38,19 @@ repository) and exposes **two clearly differentiated entry channels**:
 
 ### Inter-service communication: API / events
 
-Communication with sibling microservices — `cc-identity-service`, `cc-teams-service`,
-`am-notification-service`, and the audit service — happens exclusively over **REST via
-Spring Cloud OpenFeign** declarative clients, never over the WebSocket channel. Each client has
-its own base URL (`integrations.*.base-url`, see [Configuration](configuracion.md)) and its own
-Feign timeout profile (`feign.client.config`), since a chat-completion call to the Groq-backed
-chatbot takes noticeably longer than a plain existence check against identity/teams.
+Communication with sibling microservices — `cc-users-players-service`, `cc-teams-service`, and
+`am-notification-service` — happens exclusively over **REST via Spring Cloud OpenFeign**
+declarative clients, never over the WebSocket channel. Each client has its own base URL
+(`integrations.*.base-url`, see [Configuration](configuracion.md)) and its own Feign timeout
+profile (`feign.client.config`), since a chat-completion call to the Groq-backed chatbot takes
+noticeably longer than a plain existence check against users/teams.
 
 Existence checks (user/team) can be toggled independently per environment
 (`USER_EXISTENCE_CHECK` / `TEAM_EXISTENCE_CHECK`), so this service is never hard-blocked by a
-sibling service that hasn't shipped its endpoint yet. The full contract — current gaps, JWT
-claim compatibility, and what each team still needs to expose — is tracked in
+sibling service that hasn't shipped its endpoint yet — both currently default to enabled, since
+both real endpoints exist. There is no standalone audit service in the organization; support-ticket
+transitions are logged locally instead of pushed to one. The full contract — JWT claim
+compatibility and what each team exposes — is tracked in
 [Service Integration](integracion-servicios.md).
 
 ## Design patterns
@@ -121,10 +123,11 @@ End-to-end path of a direct/group message:
    `cc-teams-service` when `TEAM_EXISTENCE_CHECK` is enabled) and persists the message through
    the **repository** layer.
 5. The message is broadcast in real time to every client subscribed to that *topic*.
-6. The service asynchronously calls `am-notification-service` (Feign) to trigger a notification,
-   and reports the event to the audit service.
-7. Moderation follows the same pattern for reported messages: a **Report** is created, reviewed
-   by a moderator, and its resolution is persisted and reported to auditing.
+6. Moderation follows the same pattern for reported messages: a **Report** is created, reviewed
+   by a moderator, and its resolution is persisted.
+
+`am-notification-service` is only called from the [support chain](#design-patterns) today — when a
+support ticket changes level, not for every regular chat message.
 
 ## UML and architecture diagrams
 

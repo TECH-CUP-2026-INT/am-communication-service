@@ -28,8 +28,6 @@ integrations:
     base-url: http://localhost:0
   notification-service:
     base-url: http://localhost:0
-  audit-service:
-    base-url: http://localhost:0
   groq:
     base-url: http://localhost:0
     api-key: test-groq-api-key

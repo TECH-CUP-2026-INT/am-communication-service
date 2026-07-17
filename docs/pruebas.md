@@ -1,7 +1,7 @@
 # Testing
 
 The project includes `spring-boot-starter-test`, which bundles **JUnit 5**, **Mockito**,
-**AssertJ**, and **Spring Test**. There are currently **52 test classes** (~200 `@Test` methods)
+**AssertJ**, and **Spring Test**. There are currently **48 test classes** (~200 `@Test` methods)
 under `src/test/java`, covering domain models, use cases, REST/WebSocket controllers, Feign
 adapters, and persistence.
 
@@ -35,7 +35,8 @@ A representative sample of what's actually covered, beyond a plain CRUD smoke te
 
 | Test class | What it verifies |
 |---|---|
-| `domain/service/support/SupportChainOrchestratorTest` | The support [chain of responsibility](arquitectura.md#design-patterns)'s orchestration, using hand-rolled fake handlers to check escalation, audit recording, and notification side effects. |
+| `domain/service/support/SupportChainOrchestratorTest` | The support [chain of responsibility](arquitectura.md#design-patterns)'s orchestration, using hand-rolled fake handlers to check escalation and notification side effects. |
+| `infrastructure/out/feign/LiveWireContractVerificationTest` | Boots the real `Feign*Client` adapters through Spring Cloud OpenFeign's actual wiring against plain-JDK `HttpServer` stubs mirroring cc-users-players-service/cc-teams-service/am-notification-service's real contracts — proves the request path, headers (including the notification service's `X-Internal-Api-Key`), and JSON body actually match what those services expect, not just that this service's own code is internally consistent. |
 | `domain/service/support/ChatbotSupportHandlerTest` | The Groq-backed chatbot handler, including the fallback message path when the AI call raises `IntegrationException` and the always-escalate-to-MODERATOR behavior. |
 | `domain/service/support/SupportPromptBuilderTest` | The [prompt builder](arquitectura.md#design-patterns)'s output format — subject-only vs. with conversation history, and correct `Assistant`/`User` role labeling. |
 | `domain/model/ChatTest` | The `Chat` aggregate's own invariants (creation, participants, closing) — the largest domain-model test class. |

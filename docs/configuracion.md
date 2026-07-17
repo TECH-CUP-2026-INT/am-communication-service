@@ -40,18 +40,15 @@ how to run the service locally, and the observability endpoints it exposes.
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `USER_SERVICE_URL` | `http://localhost:11711` | Base URL of `cc-identity-service`. |
-| `TEAM_SERVICE_URL` | `http://localhost:8082` | Base URL of `cc-teams-service`. |
+| `USER_SERVICE_URL` | `http://localhost:8084/api/v1` | Base URL of `cc-users-players-service` (owns user data; `cc-identity-service` only handles auth). |
+| `TEAM_SERVICE_URL` | `http://localhost:5622` | Base URL of `cc-teams-service`. |
 | `NOTIFICATION_SERVICE_URL` | `http://localhost:8083` | Base URL of `am-notification-service`. |
-| `AUDIT_SERVICE_URL` | `http://localhost:8084` | Base URL of the audit service. |
-| `USER_EXISTENCE_CHECK` | `true` | Whether to verify a user's existence via `cc-identity-service` before creating a chat. |
+| `INTERNAL_API_KEY` | *(empty)* | Shared secret `am-notification-service` requires (`X-Internal-Api-Key` header) on its service-to-service webhooks. Unset means notifications fail with `401`, logged and swallowed like any other notification failure. |
+| `USER_EXISTENCE_CHECK` | `true` | Whether to verify a user's existence via `cc-users-players-service` before creating a chat. |
 | `TEAM_EXISTENCE_CHECK` | `true` | Whether to verify a team's existence via `cc-teams-service` before creating a group chat. |
 
-!!! warning "Existence checks in local Docker Compose"
-    `docker-compose.yml` defaults both `USER_EXISTENCE_CHECK` and `TEAM_EXISTENCE_CHECK` to
-    `false`, because neither `cc-identity-service` nor `cc-teams-service` currently exposes the
-    lookup endpoint this service expects (see [Service Integration](integracion-servicios.md)).
-    Set them to `true` once those endpoints exist.
+See [Service Integration](integracion-servicios.md) for the exact endpoints called and the
+removed audit-service integration (no such service exists in the organization).
 
 ### Chatbot (Groq)
 

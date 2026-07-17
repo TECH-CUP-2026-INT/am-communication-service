@@ -1,6 +1,7 @@
 package co.edu.escuelaing.techcup.communications.infrastructure.out.feign;
 
 import co.edu.escuelaing.techcup.communications.domain.exception.IntegrationException;
+import co.edu.escuelaing.techcup.communications.domain.service.support.SupportBotIdentity;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -21,20 +22,24 @@ class FeignNotificationServiceClientTest {
     @Mock
     private NotificationServiceFeignClient feignClient;
 
+    private final UUID chatId = UUID.randomUUID();
     private final UUID recipientId = UUID.randomUUID();
 
     @Test
-    void sendsTheNotificationPayload() {
+    void sendsAChatMessageEventShapedNotification() {
         FeignNotificationServiceClient client = new FeignNotificationServiceClient(feignClient);
 
-        assertThatCode(() -> client.notify(recipientId, "Support ticket updated", "detail"))
+        assertThatCode(() -> client.notify(chatId, recipientId, "detail"))
                 .doesNotThrowAnyException();
 
-        ArgumentCaptor<NotificationPayload> captor = ArgumentCaptor.forClass(NotificationPayload.class);
+        ArgumentCaptor<ChatMessageEvent> captor = ArgumentCaptor.forClass(ChatMessageEvent.class);
         verify(feignClient).sendNotification(captor.capture());
+        assertThat(captor.getValue().chatId()).isEqualTo(chatId);
         assertThat(captor.getValue().recipientId()).isEqualTo(recipientId);
-        assertThat(captor.getValue().title()).isEqualTo("Support ticket updated");
-        assertThat(captor.getValue().message()).isEqualTo("detail");
+        assertThat(captor.getValue().messagePreview()).isEqualTo("detail");
+        assertThat(captor.getValue().senderId()).isEqualTo(SupportBotIdentity.BOT_USER_ID);
+        assertThat(captor.getValue().senderName()).isNotBlank();
+        assertThat(captor.getValue().sentAt()).isNotNull();
     }
 
     @Test
@@ -42,7 +47,7 @@ class FeignNotificationServiceClientTest {
         doThrow(FeignExceptions.withStatus(500)).when(feignClient).sendNotification(org.mockito.ArgumentMatchers.any());
         FeignNotificationServiceClient client = new FeignNotificationServiceClient(feignClient);
 
-        assertThatThrownBy(() -> client.notify(recipientId, "title", "message"))
+        assertThatThrownBy(() -> client.notify(chatId, recipientId, "message"))
                 .isInstanceOf(IntegrationException.class);
     }
 }

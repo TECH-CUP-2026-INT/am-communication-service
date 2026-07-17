@@ -25,15 +25,18 @@ services:
       JPA_DDL_AUTO: ${JPA_DDL_AUTO:-update}
       # The signing secret is shared with the authentication service and never defaulted.
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set}
-      USER_SERVICE_URL: ${USER_SERVICE_URL:-http://identity-service:11711}
-      TEAM_SERVICE_URL: ${TEAM_SERVICE_URL:-http://team-service:8082}
+      USER_SERVICE_URL: ${USER_SERVICE_URL:-http://users-players-service:8084/api/v1}
+      TEAM_SERVICE_URL: ${TEAM_SERVICE_URL:-http://team-service:5622}
       NOTIFICATION_SERVICE_URL: ${NOTIFICATION_SERVICE_URL:-http://notification-service:8083}
-      AUDIT_SERVICE_URL: ${AUDIT_SERVICE_URL:-http://audit-service:8084}
-      # cc-identity-service has no user-lookup endpoint yet and cc-teams-service is still an
-      # empty skeleton: both checks default off here so `docker compose up` isn't blocked on
-      # dependencies that don't exist yet. Flip to true once each service exposes its GET /{id}.
-      USER_EXISTENCE_CHECK: ${USER_EXISTENCE_CHECK:-false}
-      TEAM_EXISTENCE_CHECK: ${TEAM_EXISTENCE_CHECK:-false}
+      # Shared secret am-notification-service checks on its service-to-service webhooks. Not
+      # required to start (unlike JWT_SECRET/GROQ_API_KEY): an unset key just means notifications
+      # fail with 401, best-effort logged like any other notification failure.
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY:-}
+      # Both cc-users-players-service and cc-teams-service now expose real internal
+      # existence-check endpoints, so both checks default on. They still only matter once those
+      # containers are actually reachable on this network.
+      USER_EXISTENCE_CHECK: ${USER_EXISTENCE_CHECK:-true}
+      TEAM_EXISTENCE_CHECK: ${TEAM_EXISTENCE_CHECK:-true}
       # The chatbot support tier's key, same never-defaulted pattern as JWT_SECRET.
       GROQ_API_KEY: ${GROQ_API_KEY:?GROQ_API_KEY must be set}
       GROQ_BASE_URL: ${GROQ_BASE_URL:-https://api.groq.com/openai/v1}

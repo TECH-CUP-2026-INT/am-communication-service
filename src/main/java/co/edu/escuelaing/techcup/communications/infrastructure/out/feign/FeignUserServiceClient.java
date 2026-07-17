@@ -10,9 +10,11 @@ import org.springframework.stereotype.Component;
 import java.util.UUID;
 
 /**
- * cc-identity-service does not yet expose a user lookup endpoint. Until it does, the existence
- * check can be disabled via {@code integrations.user-service.existence-check-enabled=false} so
- * chat creation isn't blocked on a dependency that doesn't exist yet.
+ * Calls cc-users-players-service's {@code GET /internal/players/{id}/exists}
+ * (InternalPlayerController), the service-to-service existence check it built for exactly this
+ * purpose. cc-identity-service owns auth/credentials only and has no equivalent lookup route.
+ * The check can still be disabled via {@code integrations.user-service.existence-check-enabled=false}
+ * if that dependency ever becomes unreachable.
  */
 @Slf4j
 @Component
@@ -37,10 +39,7 @@ public class FeignUserServiceClient implements UserServiceClient {
             return true;
         }
         try {
-            feignClient.getUser(userId);
-            return true;
-        } catch (FeignException.NotFound ex) {
-            return false;
+            return feignClient.exists(userId).exists();
         } catch (FeignException ex) {
             throw new IntegrationException(SERVICE, ex);
         }

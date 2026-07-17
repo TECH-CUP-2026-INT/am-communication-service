@@ -9,6 +9,8 @@ import java.util.UUID;
 @FeignClient(name = "user-service", url = "${integrations.user-service.base-url}")
 interface UserServiceFeignClient {
 
-    @GetMapping("/users/{id}")
-    void getUser(@PathVariable("id") UUID id);
+    // cc-users-players-service's InternalPlayerController: built specifically for
+    // service-to-service existence checks. Always returns 200, never 404.
+    @GetMapping("/internal/players/{id}/exists")
+    ExistsResponse exists(@PathVariable("id") UUID id);
 }

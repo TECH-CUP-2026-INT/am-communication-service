@@ -7,7 +7,6 @@ import co.edu.escuelaing.techcup.communications.domain.model.enums.ParticipantRo
 import co.edu.escuelaing.techcup.communications.domain.service.ports.out.ChatRepository;
 import co.edu.escuelaing.techcup.communications.domain.service.ports.out.SupportTicketRepository;
 import co.edu.escuelaing.techcup.communications.domain.service.ports.in.CreateSupportTicketUseCase;
-import co.edu.escuelaing.techcup.communications.domain.service.ports.out.AuditServiceClient;
 import co.edu.escuelaing.techcup.communications.application.usecase.command.CreateSupportTicketCommand;
 import co.edu.escuelaing.techcup.communications.domain.service.support.SupportBotIdentity;
 import co.edu.escuelaing.techcup.communications.domain.service.support.SupportChainOrchestrator;
@@ -21,7 +20,6 @@ public class CreateSupportTicketService implements CreateSupportTicketUseCase {
 
     private final ChatRepository chatRepository;
     private final SupportTicketRepository supportTicketRepository;
-    private final AuditServiceClient auditServiceClient;
     private final SupportChainOrchestrator supportChainOrchestrator;
 
     @Override
@@ -34,9 +32,6 @@ public class CreateSupportTicketService implements CreateSupportTicketUseCase {
 
         SupportTicket ticket = supportTicketRepository.save(
                 SupportTicket.open(chat, command.requesterId(), command.subject()));
-
-        auditServiceClient.recordEvent("SUPPORT_TICKET_CREATED", ticket.getId(),
-                "requester=" + command.requesterId());
 
         supportChainOrchestrator.runAutomatedStage(ticket);
         return supportTicketRepository.save(ticket);

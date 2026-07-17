@@ -20,13 +20,13 @@ import java.util.stream.Collectors;
  * Validates HS256 tokens issued by the authentication service and extracts the caller
  * identity. This service never issues tokens: login lives outside this microservice.
  *
- * <p>The identity service (cc-identity-service) does not currently put a UUID in {@code sub}
- * (it uses the user's email) and emits neither {@code username} nor {@code roles}. To stay
- * usable against those tokens without weakening validation of well-formed ones, {@link #parse}
- * accepts three shapes for the caller id, in order: a UUID {@code sub}; a UUID {@code userId}
- * claim; or, as a last resort, a UUID derived deterministically from a non-UUID {@code sub}
- * (same subject always yields the same id). This fallback should be retired once the identity
- * service issues a real {@code userId} claim.
+ * <p>{@link #parse} accepts three shapes for the caller id, in order: a UUID {@code sub}; a UUID
+ * {@code userId} claim; or, as a last resort, a UUID derived deterministically from a non-UUID
+ * {@code sub} (same subject always yields the same id). cc-identity-service now puts the real
+ * UUID in {@code sub}, so this only exists for tokens issued elsewhere that don't.
+ *
+ * <p>Roles: cc-identity-service issues a single {@code role} string claim (e.g. {@code "ADMIN"}),
+ * not a {@code roles} array. Both shapes are accepted so this service works against either.
  */
 @Service
 public class JwtService {
@@ -35,6 +35,7 @@ public class JwtService {
     private static final String USERNAME_CLAIM = "username";
     private static final String USER_ID_CLAIM = "userId";
     private static final String ROLES_CLAIM = "roles";
+    private static final String ROLE_CLAIM = "role";
 
     private final JwtParser parser;
 
@@ -103,6 +104,10 @@ public class JwtService {
     private Set<String> roles(Claims claims) {
         if (claims.get(ROLES_CLAIM) instanceof Collection<?> roles) {
             return roles.stream().map(String::valueOf).collect(Collectors.toUnmodifiableSet());
+        }
+        String singleRole = claims.get(ROLE_CLAIM, String.class);
+        if (singleRole != null) {
+            return Set.of(singleRole);
         }
         return Set.of();
     }

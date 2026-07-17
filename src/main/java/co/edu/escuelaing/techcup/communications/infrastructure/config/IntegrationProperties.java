@@ -12,8 +12,7 @@ import org.springframework.validation.annotation.Validated;
 public record IntegrationProperties(
         @NotNull @Valid Endpoint userService,
         @NotNull @Valid Endpoint teamService,
-        @NotNull @Valid Endpoint notificationService,
-        @NotNull @Valid Endpoint auditService
+        @NotNull @Valid Endpoint notificationService
 ) {
     /**
      * @param existenceCheckEnabled whether {@code exists(id)} actually calls the downstream

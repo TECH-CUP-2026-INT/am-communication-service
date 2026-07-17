@@ -84,6 +84,25 @@ class JwtServiceTest {
     }
 
     @Test
+    void acceptsASingleRoleClaimLikeCcIdentityServiceIssues() {
+        // Mirrors an actual cc-identity-service token: sub is the real userId, plus singular
+        // "role" (string) and "email" claims instead of a "roles" array.
+        String token = Jwts.builder()
+                .subject(userId.toString())
+                .claim("email", "alice@example.com")
+                .claim("role", "ORGANIZER")
+                .issuedAt(Date.from(Instant.now()))
+                .expiration(Date.from(Instant.now().plus(Duration.ofMinutes(5))))
+                .signWith(Keys.hmacShaKeyFor(JwtTestTokens.SECRET.getBytes(StandardCharsets.UTF_8)))
+                .compact();
+
+        AuthenticatedUser user = jwtService.parse(token);
+
+        assertThat(user.userId()).isEqualTo(userId);
+        assertThat(user.roles()).containsExactly("ORGANIZER");
+    }
+
+    @Test
     void yieldsNoRolesWhenTheClaimIsAbsent() {
         String token = JwtTestTokens.signedWith(JwtTestTokens.SECRET, userId, "bob", null, Duration.ofMinutes(5));
 
