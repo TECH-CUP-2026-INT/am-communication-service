@@ -112,7 +112,7 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/qa' || github.ref == 'refs/heads/develop'
 
     permissions:
       contents: read
@@ -157,7 +157,7 @@ jobs:
 
     needs: dockerize-publish
 
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/qa'
 
     runs-on: ubuntu-latest
 
