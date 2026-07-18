@@ -1,5 +1,6 @@
 package co.edu.escuelaing.techcup.communications.infrastructure.out.persistence.jpa;
 
+import co.edu.escuelaing.techcup.communications.domain.model.enums.ChatType;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -17,6 +18,10 @@ public interface ChatJpaRepository extends JpaRepository<ChatDao, UUID> {
     @Override
     @EntityGraph(attributePaths = "participants")
     Optional<ChatDao> findById(UUID id);
+
+
+    @EntityGraph(attributePaths = "participants")
+    Optional<ChatDao> findByTeamIdAndType(UUID teamId, ChatType type);
 
 
     @EntityGraph(attributePaths = "participants")

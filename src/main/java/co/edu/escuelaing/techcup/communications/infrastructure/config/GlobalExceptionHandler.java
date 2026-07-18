@@ -11,6 +11,7 @@ import co.edu.escuelaing.techcup.communications.domain.exception.MessageNotFound
 import co.edu.escuelaing.techcup.communications.domain.exception.ParticipantNotAllowedException;
 import co.edu.escuelaing.techcup.communications.domain.exception.ReportedMessageNotFoundException;
 import co.edu.escuelaing.techcup.communications.domain.exception.SupportTicketNotFoundException;
+import co.edu.escuelaing.techcup.communications.domain.exception.TeamChatNotFoundException;
 import co.edu.escuelaing.techcup.communications.domain.exception.TeamNotFoundException;
 import co.edu.escuelaing.techcup.communications.domain.exception.UserAccessNotAllowedException;
 import co.edu.escuelaing.techcup.communications.domain.exception.UserNotFoundException;
@@ -36,7 +37,8 @@ public class GlobalExceptionHandler {
             ReportedMessageNotFoundException.class,
             FaqNotFoundException.class,
             UserNotFoundException.class,
-            TeamNotFoundException.class
+            TeamNotFoundException.class,
+            TeamChatNotFoundException.class
     })
     public ResponseEntity<ErrorResponse> handleNotFound(DomainException ex, HttpServletRequest request) {
         return build(HttpStatus.NOT_FOUND, ex.getMessage(), request);

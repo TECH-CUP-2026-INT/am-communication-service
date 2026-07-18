@@ -40,7 +40,7 @@ how to run the service locally, and the observability endpoints it exposes.
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `USER_SERVICE_URL` | `http://localhost:8084/api/v1` | Base URL of `cc-users-players-service` (owns user data; `cc-identity-service` only handles auth). |
+| `USER_SERVICE_URL` | `http://localhost:5621/api/v1` | Base URL of `cc-users-players-service` (owns user data; `cc-identity-service` only handles auth). |
 | `TEAM_SERVICE_URL` | `http://localhost:5622` | Base URL of `cc-teams-service`. |
 | `NOTIFICATION_SERVICE_URL` | `http://localhost:8083` | Base URL of `am-notification-service`. |
 | `INTERNAL_API_KEY` | *(empty)* | Shared secret `am-notification-service` requires (`X-Internal-Api-Key` header) on its service-to-service webhooks. Unset means notifications fail with `401`, logged and swallowed like any other notification failure. |

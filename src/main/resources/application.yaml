@@ -49,10 +49,10 @@ websocket:
 
 integrations:
   user-service:
-    # cc-users-players-service's actual default: server.port 8084 + its own
+    # cc-users-players-service's actual default: server.port 5621 + its own
     # server.servlet.context-path (/api/v1). That service, not cc-identity-service, is the
     # source of truth for userId and owns the internal existence-check endpoint below.
-    base-url: ${USER_SERVICE_URL:http://localhost:8084/api/v1}
+    base-url: ${USER_SERVICE_URL:http://localhost:5621/api/v1}
     # cc-users-players-service exposes GET /internal/players/{id}/exists (InternalPlayerController,
     # built specifically for service-to-service existence checks) — safe to keep enabled.
     existence-check-enabled: ${USER_EXISTENCE_CHECK:true}

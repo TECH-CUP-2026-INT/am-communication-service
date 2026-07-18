@@ -2,6 +2,7 @@ package co.edu.escuelaing.techcup.communications.infrastructure.in.rest.controll
 
 import co.edu.escuelaing.techcup.communications.infrastructure.config.AuthenticatedUser;
 import co.edu.escuelaing.techcup.communications.infrastructure.in.rest.dto.request.CreateChatRequest;
+import co.edu.escuelaing.techcup.communications.infrastructure.in.rest.dto.request.ParticipantRequest;
 import co.edu.escuelaing.techcup.communications.infrastructure.in.rest.dto.response.ChatResponse;
 import co.edu.escuelaing.techcup.communications.infrastructure.in.rest.dto.response.ErrorResponse;
 import co.edu.escuelaing.techcup.communications.infrastructure.in.rest.dto.response.MessageResponse;
@@ -112,5 +113,37 @@ public interface ChatControllerSwagger {
     ResponseEntity<ChatResponse> close(
             @Parameter(description = "Identificador del chat", example = "f18c1f66-87b4-4eaf-bfdb-c6fd0fb89d7c")
             UUID id,
+            AuthenticatedUser caller);
+
+    @Operation(
+            summary = "Join a team's group chat",
+            description = """
+                    Adds the caller as a participant of the GROUP chat belonging to the given team.
+                    The caller must be adding themself — this endpoint exists specifically for a
+                    user who just joined a team (e.g. accepted an invitation) and does not yet know
+                    the chat's id, since it can only be discovered by an existing participant.
+                    """
+    )
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            content = @Content(
+                    schema = @Schema(implementation = ParticipantRequest.class),
+                    examples = @ExampleObject(value = """
+                            {"userId": "550e8400-e29b-41d4-a716-446655440000", "role": "MEMBER"}""")))
+    @ApiResponse(responseCode = "200", description = "Participante agregado exitosamente",
+            content = @Content(schema = @Schema(implementation = ChatResponse.class)))
+    @ApiResponse(responseCode = "400", description = "Solicitud inválida",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @ApiResponse(responseCode = "401", description = "Autenticación requerida",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @ApiResponse(responseCode = "403", description = "Solo el propio usuario puede agregarse a sí mismo",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @ApiResponse(responseCode = "404", description = "No existe un chat de tipo GROUP para ese equipo, o el usuario no existe",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @ApiResponse(responseCode = "409", description = "El usuario ya es participante del chat, o el chat está cerrado",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    ResponseEntity<ChatResponse> addTeamParticipant(
+            @Parameter(description = "Identificador del equipo", example = "660e8400-e29b-41d4-a716-446655440001")
+            UUID teamId,
+            ParticipantRequest request,
             AuthenticatedUser caller);
 }

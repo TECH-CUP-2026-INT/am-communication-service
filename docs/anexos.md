@@ -17,8 +17,6 @@ No academic bibliography applies to this project; it is a technical microservice
 TECH-CUP 2026 platform. See [References](#references) above for the official documentation this
 service's design is based on.
 
-## Additional resources
-
 ### Documentation tools
 
 | Resource | Description |
