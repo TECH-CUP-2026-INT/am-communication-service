@@ -102,8 +102,8 @@ either dependency becomes unreachable in some environment.
 ## Ports
 
 - `cc-identity-service` dev default: **`8081`**.
-- `cc-users-players-service` dev default: **`8084`**, with `server.servlet.context-path: /api/v1`
-  — so its full base URL is `http://host:8084/api/v1`, and `USER_SERVICE_URL` here is set
+- `cc-users-players-service` dev default: **`5621`**, with `server.servlet.context-path: /api/v1`
+  — so its full base URL is `http://host:5621/api/v1`, and `USER_SERVICE_URL` here is set
   accordingly.
 - `cc-teams-service` dev default: **`5622`**.
 

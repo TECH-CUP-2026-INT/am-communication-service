@@ -25,7 +25,7 @@ services:
       JPA_DDL_AUTO: ${JPA_DDL_AUTO:-update}
       # The signing secret is shared with the authentication service and never defaulted.
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set}
-      USER_SERVICE_URL: ${USER_SERVICE_URL:-http://users-players-service:8084/api/v1}
+      USER_SERVICE_URL: ${USER_SERVICE_URL:-http://users-players-service:5621/api/v1}
       TEAM_SERVICE_URL: ${TEAM_SERVICE_URL:-http://team-service:5622}
       NOTIFICATION_SERVICE_URL: ${NOTIFICATION_SERVICE_URL:-http://notification-service:8083}
       # Shared secret am-notification-service checks on its service-to-service webhooks. Not
