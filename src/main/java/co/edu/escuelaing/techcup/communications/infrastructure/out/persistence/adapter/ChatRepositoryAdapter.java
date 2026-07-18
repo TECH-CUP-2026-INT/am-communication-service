@@ -2,6 +2,7 @@ package co.edu.escuelaing.techcup.communications.infrastructure.out.persistence.
 import co.edu.escuelaing.techcup.communications.infrastructure.out.persistence.mapper.ChatPersistenceMapper;
 
 import co.edu.escuelaing.techcup.communications.domain.model.Chat;
+import co.edu.escuelaing.techcup.communications.domain.model.enums.ChatType;
 import co.edu.escuelaing.techcup.communications.infrastructure.out.persistence.jpa.ChatJpaRepository;
 import co.edu.escuelaing.techcup.communications.domain.service.ports.out.ChatRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,11 @@ class ChatRepositoryAdapter implements ChatRepository {
     @Override
     public Optional<Chat> findById(UUID id) {
         return jpaRepository.findById(id).map(mapper::toDomain);
+    }
+
+    @Override
+    public Optional<Chat> findByTeamIdAndType(UUID teamId, ChatType type) {
+        return jpaRepository.findByTeamIdAndType(teamId, type).map(mapper::toDomain);
     }
 
     @Override

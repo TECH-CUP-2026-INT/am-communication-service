@@ -10,6 +10,8 @@ import co.edu.escuelaing.techcup.communications.domain.exception.ChatNotFoundExc
 import co.edu.escuelaing.techcup.communications.application.mapper.ChatMapperImpl;
 import co.edu.escuelaing.techcup.communications.application.mapper.MessageMapperImpl;
 import co.edu.escuelaing.techcup.communications.domain.exception.InvalidChatOperationException;
+import co.edu.escuelaing.techcup.communications.domain.exception.TeamChatNotFoundException;
+import co.edu.escuelaing.techcup.communications.domain.service.ports.in.AddTeamChatParticipantUseCase;
 import co.edu.escuelaing.techcup.communications.domain.service.ports.in.CloseChatUseCase;
 import co.edu.escuelaing.techcup.communications.domain.service.ports.in.CreateChatUseCase;
 import co.edu.escuelaing.techcup.communications.domain.service.ports.in.GetChatMessagesUseCase;
@@ -63,6 +65,9 @@ class ChatControllerTest {
 
     @MockitoBean
     private CloseChatUseCase closeChatUseCase;
+
+    @MockitoBean
+    private AddTeamChatParticipantUseCase addTeamChatParticipantUseCase;
 
     private final UUID userA = UUID.randomUUID();
 
@@ -156,6 +161,60 @@ class ChatControllerTest {
         when(closeChatUseCase.close(id, userA)).thenThrow(new InvalidChatOperationException("already closed"));
 
         mockMvc.perform(post("/chats/{id}/close", id).with(caller(userA)))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void addTeamParticipantReturnsUpdatedChat() throws Exception {
+        UUID teamId = UUID.randomUUID();
+        Chat chat = Chat.create(ChatType.GROUP, teamId);
+        chat.addParticipant(userA, ParticipantRole.MEMBER);
+        when(addTeamChatParticipantUseCase.addParticipant(teamId, userA, ParticipantRole.MEMBER)).thenReturn(chat);
+
+        mockMvc.perform(post("/chats/team/{teamId}/participants", teamId)
+                        .with(caller(userA))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new ParticipantRequest(userA, ParticipantRole.MEMBER))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.type").value("GROUP"))
+                .andExpect(jsonPath("$.participants[0].userId").value(userA.toString()));
+    }
+
+    @Test
+    void addTeamParticipantForAnotherUserReturns403() throws Exception {
+        UUID teamId = UUID.randomUUID();
+        UUID someoneElse = UUID.randomUUID();
+
+        mockMvc.perform(post("/chats/team/{teamId}/participants", teamId)
+                        .with(caller(userA))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new ParticipantRequest(someoneElse, ParticipantRole.MEMBER))))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void addTeamParticipantWithNoTeamChatReturns404() throws Exception {
+        UUID teamId = UUID.randomUUID();
+        when(addTeamChatParticipantUseCase.addParticipant(teamId, userA, ParticipantRole.MEMBER))
+                .thenThrow(new TeamChatNotFoundException(teamId));
+
+        mockMvc.perform(post("/chats/team/{teamId}/participants", teamId)
+                        .with(caller(userA))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new ParticipantRequest(userA, ParticipantRole.MEMBER))))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void addTeamParticipantAlreadyMemberReturns409() throws Exception {
+        UUID teamId = UUID.randomUUID();
+        when(addTeamChatParticipantUseCase.addParticipant(teamId, userA, ParticipantRole.MEMBER))
+                .thenThrow(new InvalidChatOperationException("already a participant"));
+
+        mockMvc.perform(post("/chats/team/{teamId}/participants", teamId)
+                        .with(caller(userA))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new ParticipantRequest(userA, ParticipantRole.MEMBER))))
                 .andExpect(status().isConflict());
     }
 }
